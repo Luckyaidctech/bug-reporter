@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bug Reporter</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#1e293b;min-height:100vh}
+
+/* ===== LOGIN ===== */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e40af 60%,#7c3aed 100%)}
+.login-card{background:#fff;border-radius:24px;padding:44px 40px;width:380px;box-shadow:0 25px 80px rgba(0,0,0,.35)}
+.login-logo{width:60px;height:60px;background:linear-gradient(135deg,#1e40af,#7c3aed);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+.login-title{font-size:24px;font-weight:800;color:#0f172a;text-align:center;margin-bottom:4px}
+.login-sub{font-size:13px;color:#94a3b8;text-align:center;margin-bottom:32px}
+.lbl{font-size:12px;font-weight:700;color:#475569;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.inp{width:100%;padding:11px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;transition:border .2s;font-family:inherit;background:#f8fafc}
+.inp:focus{border-color:#1e40af;background:#fff}
+.inp-wrap{position:relative;margin-bottom:16px}
+.inp-wrap .inp{padding-right:42px}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:16px;color:#94a3b8}
+.login-btn{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.login-btn:hover{opacity:.9}
+.login-err{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+
+/* ===== HOME LAYOUT ===== */
+.home-wrap{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:260px;background:#0f172a;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo{width:40px;height:40px;background:linear-gradient(135deg,#1e40af,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px}
+.sb-title{font-size:15px;font-weight:800;color:#fff}
+.sb-sub{font-size:11px;color:#64748b;margin-top:2px}
+.sb-user{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sb-av{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1e40af,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.sb-uname{font-size:13px;font-weight:700;color:#e2e8f0}
+.sb-urole{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+.sb-nav{flex:1;padding:12px 0;overflow-y:auto}
+.sb-section{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;padding:12px 20px 6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:all .15s;border-left:3px solid transparent;color:#94a3b8;font-size:13px;font-weight:600;border:none;background:none;width:100%;text-align:left}
+.sb-item:hover{background:rgba(255,255,255,.06);color:#e2e8f0}
+.sb-item.on{background:rgba(30,64,175,.3);color:#93c5fd;border-left:3px solid #3b82f6}
+.sb-item .icon{font-size:16px;width:20px;text-align:center}
+.sb-item .badge{margin-left:auto;background:rgba(59,130,246,.25);color:#93c5fd;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700}
+.sb-item.logout{color:#f87171;margin-top:8px}
+.sb-item.logout:hover{background:rgba(239,68,68,.1)}
+.sb-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
+
+/* Main */
+.main-content{margin-left:260px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.main-header{background:#fff;border-bottom:1px solid #e5e7eb;padding:20px 28px;display:flex;align-items:center;justify-content:space-between}
+.main-header h1{font-size:20px;font-weight:800;color:#0f172a}
+.main-header p{font-size:13px;color:#64748b;margin-top:2px}
+.main-body{padding:24px 28px;flex:1}
+
+/* ===== CARDS ===== */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:24px}
+.proj-card{background:#fff;border-radius:16px;border:2px solid #e5e7eb;padding:24px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.proj-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#1e40af,#7c3aed)}
+.proj-card:hover{border-color:#3b82f6;transform:translateY(-3px);box-shadow:0 12px 32px rgba(30,64,175,.15)}
+.proj-card.all::before{background:linear-gradient(90deg,#f59e0b,#ef4444)}
+.proj-card.all{border-color:#fde68a}
+.proj-card.all:hover{border-color:#f59e0b;box-shadow:0 12px 32px rgba(245,158,11,.2)}
+.proj-icon{width:48px;height:48px;border-radius:12px;background:#eff6ff;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+.proj-card.all .proj-icon{background:#fffbeb}
+.proj-name{font-size:16px;font-weight:800;color:#0f172a;margin-bottom:4px}
+.proj-meta{font-size:12px;color:#94a3b8}
+.proj-enter{position:absolute;bottom:16px;right:16px;width:32px;height:32px;border-radius:8px;background:#eff6ff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
+.proj-card:hover .proj-enter{background:#1e40af;color:#fff}
+
+/* ===== STATS CARDS ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px}
+.stat-num{font-size:28px;font-weight:800;color:#0f172a;line-height:1}
+.stat-lbl{font-size:11px;color:#94a3b8;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.stat-card.blue .stat-num{color:#1e40af}
+.stat-card.red .stat-num{color:#dc2626}
+.stat-card.orange .stat-num{color:#ea580c}
+.stat-card.green .stat-num{color:#16a34a}
+
+/* ===== MAIN APP NAV ===== */
+.app-nav{background:#0f172a;padding:0 20px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:100}
+.app-brand{font-size:14px;font-weight:800;color:#fff;padding:14px 0;margin-right:8px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.app-tab{padding:14px 16px;border:none;background:none;color:rgba(255,255,255,.55);font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.app-tab.on{color:#fff;border-bottom-color:#3b82f6}
+.app-tab:hover{color:#fff}
+.app-nr{display:flex;align-items:center;gap:8px;margin-left:auto}
+.app-btn{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;text-decoration:none;white-space:nowrap}
+.app-btn:hover{background:rgba(255,255,255,.15)}
+.proj-pill{background:rgba(59,130,246,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700}
+
+/* ===== FORM ELEMENTS ===== */
+.fc{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;transition:border .2s;font-family:inherit;background:#fff}
+.fc:focus{border-color:#1e40af}
+.fl{font-size:12px;font-weight:700;color:#64748b;margin-bottom:5px;display:block}
+.fg{margin-bottom:13px}
+textarea.fc{resize:vertical}
+
+/* ===== PILL SEVERITY ===== */
+.pill{padding:5px 13px;border-radius:20px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.pill.on.critical,.pill.critical:hover{background:#fef2f2;border-color:#ef4444;color:#dc2626}
+.pill.on.high,.pill.high:hover{background:#fff7ed;border-color:#f97316;color:#ea580c}
+.pill.on.medium,.pill.medium:hover{background:#fffbeb;border-color:#f59e0b;color:#d97706}
+.pill.on.low,.pill.low:hover{background:#f0fdf4;border-color:#22c55e;color:#16a34a}
+.pill.on.info,.pill.info:hover{background:#eff6ff;border-color:#3b82f6;color:#2563eb}
+
+/* ===== CANVAS ===== */
+#capArea{border:2px dashed #cbd5e1;border-radius:12px;background:#f8fafc;cursor:pointer;overflow:hidden;min-height:160px;display:flex;align-items:center;justify-content:center;position:relative;transition:border-color .2s}
+#capArea.has{border-color:#3b82f6;background:#eff6ff;cursor:default}
+#cph{text-align:center;padding:24px;pointer-events:none}
+#cv{display:none;max-width:100%}
+.tb{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:8px;opacity:.4;pointer-events:none;transition:opacity .2s}
+.tb.on{opacity:1;pointer-events:auto}
+.tbtn{padding:5px 10px;border-radius:7px;border:1.5px solid #e2e8f0;background:#fff;font-size:12px;cursor:pointer;transition:all .15s;font-weight:600}
+.tbtn.on{background:#1e40af;color:#fff;border-color:#1e40af}
+.tbtn:hover:not(.on){background:#f1f5f9}
+.col{width:22px;height:22px;border-radius:50%;border:2px solid #e2e8f0;cursor:pointer;transition:all .15s}
+.col.on{border-color:#0f172a;box-shadow:0 0 0 3px rgba(15,23,42,.2)}
+.sz{width:55px;height:28px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:11px;padding:2px 6px}
+.cvwrap{position:relative;display:inline-block}
+#cvResizeHandle{position:absolute;bottom:0;right:0;width:18px;height:18px;cursor:nwse-resize;background:linear-gradient(135deg,transparent 50%,#3b82f6 50%);border-radius:0 0 4px 0;display:none}
+
+/* ===== BADGES ===== */
+.sbadge{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;text-transform:uppercase}
+.sbadge.critical{background:#fef2f2;color:#dc2626}
+.sbadge.high{background:#fff7ed;color:#ea580c}
+.sbadge.medium{background:#fffbeb;color:#d97706}
+.sbadge.low{background:#f0fdf4;color:#16a34a}
+.sbadge.info{background:#eff6ff;color:#2563eb}
+.stbadge{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700}
+.stbadge.open{background:#fef9c3;color:#854d0e}
+.stbadge.in_progress{background:#eff6ff;color:#1d4ed8}
+.stbadge.resolved{background:#f0fdf4;color:#15803d}
+.stbadge.closed{background:#f1f5f9;color:#475569}
+
+/* ===== BUG CARDS ===== */
+#bgrid,#hab-bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.bc{background:#fff;border-radius:12px;border:1.5px solid #e5e7eb;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
+.bc:hover{box-shadow:0 6px 24px rgba(0,0,0,.1);transform:translateY(-2px)}
+.bc-sel{border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,.15)}
+.bimg{width:100%;height:140px;object-fit:cover;display:block}
+.bnimg{width:100%;height:90px;display:flex;align-items:center;justify-content:center;background:#f8fafc;font-size:28px;color:#cbd5e1}
+.bbody{padding:10px 12px 12px}
+.bmeta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.btitle{font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}
+.bnote{font-size:11px;color:#64748b;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px}
+.bfoot{display:flex;align-items:center;justify-content:space-between}
+.av{width:24px;height:24px;border-radius:6px;background:#1e40af;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.delbtn{position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:6px;background:rgba(239,68,68,.9);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.bc:hover .delbtn{opacity:1}
+
+/* ===== FILTER BAR ===== */
+.fbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;background:#fff;border-radius:12px;padding:12px 14px;border:1.5px solid #e5e7eb}
+.fbar .fc{min-width:110px;width:auto;flex:1}
+
+/* ===== MODAL ===== */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+.mo.open{display:flex}
+.mb{background:#fff;border-radius:14px;width:100%;max-width:820px;margin:auto;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mh{padding:18px 22px;border-bottom:1.5px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+.mh h3{font-size:16px;font-weight:800;color:#0f172a}
+.mc{padding:22px}
+.xbtn{width:32px;height:32px;border-radius:8px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.xbtn:hover{background:#f1f5f9}
+
+/* ===== BUTTONS ===== */
+.btn{padding:9px 18px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.bp{background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff}
+.bp:hover{opacity:.9}
+.bs{background:#f1f5f9;color:#374151}
+.bs:hover{background:#e2e8f0}
+.bd{background:#fef2f2;color:#dc2626}
+.bd:hover{background:#fee2e2}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* ===== SPIN ===== */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-130px);opacity:0;z-index:99999;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .25s;pointer-events:none;min-width:280px;max-width:420px}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast-inner{display:flex;align-items:center;gap:12px;padding:14px 20px;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.2);font-size:14px;font-weight:600;color:#fff}
+.toast.ok .toast-inner{background:linear-gradient(135deg,#15803d,#22c55e)}
+.toast.err .toast-inner{background:linear-gradient(135deg,#dc2626,#f87171)}
+.toast.info .toast-inner{background:linear-gradient(135deg,#1e40af,#3b82f6)}
+.toast-bar{height:3px;background:rgba(255,255,255,.4);border-radius:2px;margin-top:8px;transform-origin:left}
+@keyframes tbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+/* ===== LIGHTBOX ===== */
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
+#lb.open{display:flex}
+#lb img{max-width:95vw;max-height:95vh;border-radius:8px;object-fit:contain}
+
+/* ===== MASTER DATA ===== */
+.mdlist{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto}
+.mditem{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px}
+.mditem input{flex:1;border:none;background:transparent;font-size:13px;outline:none}
+.mditem .rm{border:none;background:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:0;line-height:1;transition:color .2s}
+.mditem .rm:hover{color:#ef4444}
+.md-add{display:flex;gap:6px}
+
+/* ===== SECTION HEADER ===== */
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sec-h h2{font-size:18px;font-weight:800;color:#0f172a}
+.sec-h p{font-size:13px;color:#64748b;margin-top:2px}
+
+/* ===== LOADING / EMPTY ===== */
+#lrow{padding:60px;text-align:center;color:#94a3b8;display:none}
+#emp{display:none;text-align:center;padding:60px;color:#94a3b8}
+
+/* ===== MISC ===== */
+.card-section{background:#fff;border-radius:14px;border:1.5px solid #e5e7eb;padding:20px;margin-bottom:20px}
+.card-section h3{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.tab-content{display:none}.tab-content.active{display:block}
+.screen{display:none}.screen.active{display:block}
+.sep{height:1px;background:#f1f5f9;margin:12px 0}
+
+/* ===== TRANSLATE BAR ===== */
+.trans-bar{display:grid;grid-template-columns:1fr auto 1fr auto;align-items:center;gap:6px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:8px 12px;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><div class="toast-inner"><span id="toastIcon"></span><span id="toastMsg"></span></div><div class="toast-bar" id="toastBar"></div></div>
+<!-- LIGHTBOX -->
+<div id="lb" onclick="closeLb()"><img id="lbImg" src="" alt=""></div>
+
+<!-- ADMIN SUBMIT MODAL -->
+<div class="mo" id="adminSubM" onclick="if(event.target===this)closeAdminSubmit()">
+<div class="mb" style="max-width:min(1160px,96vw);margin:auto">
+  <div class="mh">
+    <h3>➕ Submit Bug Report</h3>
+    <button onclick="closeAdminSubmit()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#64748b">✕</button>
+  </div>
+  <div id="asmContent" style="padding:20px;overflow-y:auto;max-height:85vh"></div>
+</div>
+</div>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="screenLogin" class="screen active">
+<div class="login-wrap">
+<div class="login-card">
+  <div class="login-logo">🛡</div>
+  <div class="login-title">Bug Reporter</div>
+  <div class="login-sub">AIDC Tech · QA System</div>
+  <div class="login-err" id="loginErr">❌ ชื่อหรือ PIN ไม่ถูกต้อง</div>
+  <div style="margin-bottom:14px">
+    <label class="lbl">Username</label>
+    <input class="inp" id="loginUser" placeholder="กรอกชื่อ..." onkeydown="if(event.key==='Enter')document.getElementById('loginPin').focus()">
+  </div>
+  <div style="margin-bottom:20px">
+    <label class="lbl">PIN</label>
+    <div class="inp-wrap">
+      <input class="inp" id="loginPin" type="password" maxlength="10" placeholder="กรอก PIN..." onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="eye" type="button" onclick="toggleEye('loginPin',this)">👁</button>
+    </div>
+  </div>
+  <button class="login-btn" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ →</button>
+</div>
+</div>
+</div>
+
+<!-- ===================== HOME ===================== -->
+<div id="screenHome" class="screen">
+<div class="home-wrap">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">🛡</div>
+    <div class="sb-title">Bug Reporter</div>
+    <div class="sb-sub">AIDC Tech · QA System</div>
+  </div>
+  <div class="sb-user">
+    <div class="sb-av" id="sbAv">A</div>
+    <div>
+      <div class="sb-uname" id="sbName">—</div>
+      <div class="sb-urole" id="sbRole">—</div>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Projects</div>
+    <button class="sb-item on" id="snav-projects" onclick="switchHome('projects')"><span class="icon">📋</span> Project List <span class="badge" id="projBadge">0</span></button>
+    <button class="sb-item" id="snav-allbugs" onclick="switchHome('allbugs')"><span class="icon">🐛</span> All Bugs <span class="badge" id="allBugsBadge" style="background:#ef4444">0</span></button>
+
+    <div class="sb-section" id="adminSection" style="display:none">Admin</div>
+    <button class="sb-item" id="snav-master" onclick="switchHome('master')" style="display:none"><span class="icon">🗂</span> Master Data</button>
+    <button class="sb-item" id="snav-users" onclick="switchHome('users')" style="display:none"><span class="icon">👥</span> Users</button>
+  </div>
+  <div class="sb-footer">
+    <button class="sb-item logout" onclick="doLogout()"><span class="icon">🚪</span> ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-content">
+
+  <!-- PROJECTS TAB -->
+  <div class="tab-content active" id="ht-projects">
+    <div class="main-header">
+      <div><h1>📁 Projects</h1><p>เลือก project เพื่อเข้าทำงาน</p></div>
+      <button class="btn bp" onclick="showAddProject()" id="addProjBtn">+ New Project</button>
+    </div>
+    <div class="main-body">
+      <div id="projGrid"></div>
+    </div>
+  </div>
+
+  <!-- ALL BUGS TAB -->
+  <div class="tab-content" id="ht-allbugs">
+    <div class="main-header">
+      <div><h1>🐛 All Bugs</h1><p id="hab-sub">Bug รวมจากทุก project</p></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn bp" onclick="openAdminSubmit()" style="padding:9px 18px">➕ Submit Bug</button>
+        <button class="btn bs" onclick="loadHomeAllBugs()" style="padding:9px 18px">🔄 Refresh</button>
+      </div>
+    </div>
+    <div class="main-body">
+      <div class="stat-grid" id="hab-srow"></div>
+      <div class="fbar" style="margin-bottom:16px;flex-wrap:wrap">
+        <input class="fc" id="hab-fs" placeholder="🔍 ค้นหา..." oninput="renderHAB()">
+        <select class="fc" id="hab-fproj" onchange="renderHAB()"><option value="">All Projects</option></select>
+        <select class="fc" id="hab-fsev" onchange="renderHAB()"><option value="">All Severity</option></select>
+        <select class="fc" id="hab-fst" onchange="renderHAB()"><option value="">All Status</option></select>
+        <select class="fc" id="hab-frep" onchange="renderHAB()"><option value="">All Reporter</option></select>
+        <select class="fc" id="hab-fmod" onchange="renderHAB()"><option value="">All Module</option></select>
+        <input class="fc" type="date" id="hab-fdFrom" onchange="renderHAB()" style="max-width:140px">
+        <input class="fc" type="date" id="hab-fdTo" onchange="renderHAB()" style="max-width:140px">
+        <button class="btn bs" onclick="clearHABF()" style="font-size:13px;padding:7px 12px" title="Clear">✕</button>
+        <span id="hab-count" style="font-size:12px;color:#94a3b8;padding:6px 0;white-space:nowrap;margin-left:auto">0 bugs</span>
+      </div>
+      <div id="hab-lrow" style="display:none;padding:60px;text-align:center"><span class="spin" style="border-top-color:#1e40af;border-color:rgba(30,64,175,.3)"></span></div>
+      <div class="bug-grid" id="hab-bgrid"></div>
+      <div id="hab-emp" style="display:none;text-align:center;padding:60px;color:#94a3b8"><div style="font-size:36px;margin-bottom:12px">🐛</div><div>ไม่มี bug ที่ตรงกับ filter</div></div>
+    </div>
+  </div>
+
+  <!-- MASTER DATA TAB -->
+  <div class="tab-content" id="ht-master">
+    <div class="main-header">
+      <div><h1>🗂 Master Data</h1><p>ตั้งค่า Environment / Module / Severity / Status ต่อ project</p></div>
+    </div>
+    <div class="main-body">
+      <div class="fg" style="max-width:320px;margin-bottom:20px">
+        <label class="fl">เลือก Project</label>
+        <select class="fc" id="mdProjSel" onchange="loadMasterForProj()">
+          <option value="">— เลือก Project —</option>
+        </select>
+      </div>
+      <div id="mdContent"></div>
+    </div>
+  </div>
+
+  <!-- USERS TAB -->
+  <div class="tab-content" id="ht-users">
+    <div class="main-header">
+      <div><h1>👥 Users</h1><p>จัดการผู้ใช้งานทั้งหมด</p></div>
+      <button class="btn bp" onclick="showAddUser()">+ New User</button>
+    </div>
+    <div class="main-body" id="usersContent"></div>
+  </div>
+
+</div><!-- main-content -->
+</div><!-- home-wrap -->
+</div><!-- screenHome -->
+
+<!-- ===================== APP ===================== -->
+<div id="screenApp" class="screen">
+<nav class="app-nav">
+  <div class="app-brand">🛡 <span id="appProjName">—</span></div>
+  <button class="app-tab on" id="atab-report" onclick="switchAppTab('report')">🐛 Report Bug</button>
+  <button class="app-tab" id="atab-dashboard" onclick="switchAppTab('dashboard')">📊 Dashboard</button>
+  <div class="app-nr">
+    <a id="sheetLink" href="#" target="_blank" class="app-btn" style="opacity:.45" onclick="return openSheetLink(event)">📊 Sheet</a>
+    <button class="app-btn" id="homeOrLogoutBtn" onclick="backHome()">← Home</button>
+  </div>
+</nav>
+
+<div style="max-width:1200px;margin:0 auto;padding:20px 20px">
+
+<!-- REPORT TAB -->
+<div class="tab-content active" id="tc-report">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+<!-- LEFT: SCREENSHOT -->
+<div class="card-section">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <h3 style="margin:0">📷 Screenshot &amp; Annotation</h3>
+    <div style="display:flex;gap:6px">
+      <button id="unlockBtn" style="display:none;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:12px;padding:5px 14px;cursor:pointer;font-weight:600" onclick="unlockCollage()">🖼 แก้รูป</button>
+      <button id="clrBtn" style="display:none;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;font-size:12px;padding:5px 14px;cursor:pointer;font-weight:600" onclick="clearCap()">✕ Clear</button>
+    </div>
+  </div>
+  <div class="tb" id="tb">
+    <button class="tbtn on" id="t-rect" onclick="setTool('rect')">□</button>
+    <button class="tbtn" id="t-arrow" onclick="setTool('arrow')">↗</button>
+    <button class="tbtn" id="t-pen" onclick="setTool('pen')">✏</button>
+    <button class="tbtn" id="t-text" onclick="setTool('text')">T</button>
+    <button class="tbtn" id="t-blur" onclick="setTool('blur')">▪</button>
+    <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+    <div class="col on" style="background:#ef4444" onclick="setColor('#ef4444',this)"></div>
+    <div class="col" style="background:#3b82f6" onclick="setColor('#3b82f6',this)"></div>
+    <div class="col" style="background:#f59e0b" onclick="setColor('#f59e0b',this)"></div>
+    <div class="col" style="background:#10b981" onclick="setColor('#10b981',this)"></div>
+    <div class="col" style="background:#1a1a2e" onclick="setColor('#1a1a2e',this)"></div>
+    <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+    <input type="range" style="width:64px;accent-color:#2563eb" min="1" max="12" value="2" oninput="bsz=+this.value">
+    <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+    <button class="tbtn" onclick="undo()">↩</button>
+    <button class="tbtn" onclick="redo()">↪</button>
+  </div>
+  <div id="capArea" onclick="handleCapClick()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+    <div id="cph"><div style="font-size:32px;margin-bottom:8px">📷</div><div style="font-size:13px;color:#64748b;font-weight:600">คลิกเพื่อ Capture Screen</div><div style="font-size:11px;color:#94a3b8;margin-top:5px">หรือ Ctrl+V · ลากไฟล์</div></div>
+    <div class="cvwrap"><canvas id="cv"></canvas><div id="cvResizeHandle" onmousedown="cvResizeStart(event)"></div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+    <button class="btn bs" style="font-size:12px;padding:7px 14px" onclick="capScreen()">📷 Capture Screen</button>
+    <button class="btn bs" style="font-size:12px;padding:7px 14px" onclick="document.getElementById('imgUp').click()">📁 Upload</button>
+    <input type="file" id="imgUp" style="display:none" accept="image/*" onchange="handleUpload(event)">
+    <button class="btn bs" style="font-size:12px;padding:7px 14px;background:#eff6ff;color:#2563eb;border-color:#bfdbfe" onclick="startBlankCollage()">🖼 Canvas เปล่า</button>
+    <button class="btn bs" id="dlBtn" style="display:none;font-size:12px;padding:7px 14px" onclick="downloadCap()">💾 Download</button>
+    <button class="btn bs" id="cpBtn" style="display:none;font-size:12px;padding:7px 14px" onclick="copyCap()">📋 Copy</button>
+  </div>
+</div>
+
+<!-- RIGHT: FORM -->
+<div class="card-section">
+  <h3>🐛 Bug Detail</h3>
+
+  <!-- Translate bar -->
+  <div class="trans-bar">
+    <select id="transFrom" class="fc" style="font-size:11px;padding:4px 6px">
+      <option value="vi">🇻🇳 Vietnamese</option>
+      <option value="th">🇹🇭 Thai</option>
+      <option value="lo">🇱🇦 Lao</option>
+      <option value="zh">🇨🇳 Chinese</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+    <span style="color:#64748b;font-size:14px;padding:0 2px">→</span>
+    <select id="transLang" class="fc" style="font-size:11px;padding:4px 6px">
+      <option value="en">🇬🇧 English</option>
+      <option value="th">🇹🇭 Thai</option>
+      <option value="vi">🇻🇳 Vietnamese</option>
+      <option value="lo">🇱🇦 Lao</option>
+      <option value="zh">🇨🇳 Chinese</option>
+    </select>
+    <div style="display:flex;gap:5px">
+      <button id="transBtn" class="btn bp" style="padding:5px 10px;font-size:11px;background:linear-gradient(135deg,#1e40af,#7c3aed)" onclick="translateForm()">⟳ Translate</button>
+      <button id="transRestoreBtn" class="btn bs" style="padding:5px 10px;font-size:11px;display:none" onclick="restoreOrig()">↩</button>
+    </div>
+  </div>
+
+  <div class="fg"><label class="fl">Bug ID</label><input class="fc" id="bBugId" readonly value="Auto-generated" style="background:#f8fafc;color:#94a3b8;font-family:monospace;cursor:default"></div>
+  <div class="fg"><label class="fl">Title *</label><input class="fc" id="bTitle" placeholder="ชื่อ bug สั้นๆ..."></div>
+  <div class="fg">
+    <label class="fl">Severity</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="pill critical" onclick="setSev('critical',this)">Critical</button>
+      <button class="pill high" onclick="setSev('high',this)">High</button>
+      <button class="pill medium on" onclick="setSev('medium',this)">Medium</button>
+      <button class="pill low" onclick="setSev('low',this)">Low</button>
+      <button class="pill info" onclick="setSev('info',this)">Info</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fg"><label class="fl">Environment</label><select class="fc" id="bEnv"></select></div>
+    <div class="fg"><label class="fl">Module</label><select class="fc" id="bMod"></select></div>
+  </div>
+  <div class="fg"><label class="fl">Feature</label><input class="fc" id="bFeat" placeholder="Login, Payment..."></div>
+  <div class="fg"><label class="fl">Description *</label><textarea class="fc" id="bDesc" rows="4" style="min-height:100px" placeholder="อธิบาย bug..."></textarea></div>
+  <div class="fg"><label class="fl">Steps to Reproduce</label><textarea class="fc" id="bSteps" rows="3" style="min-height:100px" placeholder="1. ไปที่...&#10;2. คลิก..."></textarea></div>
+  <button class="btn bp" style="width:100%;padding:12px;font-size:14px" id="subBtn" onclick="submitBug()">🚀 Submit Bug Report</button>
+</div>
+
+</div><!-- grid -->
+</div><!-- report tab -->
+
+<!-- DASHBOARD TAB -->
+<div class="tab-content" id="tc-dashboard">
+  <div class="stat-grid" id="srow"></div>
+  <div class="fbar">
+    <input class="fc" id="fs" placeholder="🔍 ค้นหา..." oninput="render()">
+    <select class="fc" id="fproj" onchange="render()" style="display:none"><option value="">All Projects</option></select>
+    <select class="fc" id="fsev" onchange="render()"><option value="">All Severity</option></select>
+    <select class="fc" id="fst" onchange="render()"><option value="">All Status</option></select>
+    <select class="fc" id="frep" onchange="render()"><option value="">All Reporter</option></select>
+    <select class="fc" id="fmod" onchange="render()"><option value="">All Module</option></select>
+    <input class="fc" type="date" id="fdateFrom" onchange="render()" style="max-width:140px">
+    <input class="fc" type="date" id="fdateTo" onchange="render()" style="max-width:140px">
+    <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="clearF()">✕</button>
+    <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="exportCSV()">📥 CSV</button>
+    <button class="btn bp" style="font-size:12px;padding:7px 12px" onclick="loadBugs()">🔄</button>
+    <button class="btn bs" id="selModeBtn" style="font-size:12px;padding:7px 12px" onclick="toggleSelMode()">☑ Select</button>
+    <button class="btn bd" id="delSelBtn" style="display:none;font-size:12px;padding:7px 12px" onclick="delSelected()">🗑 Del (<span id="selCount">0</span>)</button>
+    <span style="font-size:11px;color:#94a3b8;margin-left:auto" id="dsub"></span>
+  </div>
+  <div id="lrow"><span class="spin"></span> กำลังโหลด...</div>
+  <div id="bgrid"></div>
+  <div id="emp">📭 ไม่มี bug ที่ตรงกับ filter</div>
+</div>
+
+</div><!-- container -->
+</div><!-- screenApp -->
+
+<!-- BUG MODAL -->
+<div class="mo" id="bugM" onclick="if(event.target===this)closeBug()">
+<div class="mb">
+  <div class="mh">
+    <h3 id="bmTitle">Bug Detail</h3>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn bs" style="font-size:12px;padding:5px 12px" id="bmEditBtn" onclick="toggleEditMode()">✏ Edit</button>
+      <button class="xbtn" onclick="closeBug()">✕</button>
+    </div>
+  </div>
+  <div class="mc" id="bmContent"></div>
+</div>
+</div>
+
+<!-- ADD PROJECT MODAL -->
+<div class="mo" id="addProjM" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="mb" style="max-width:480px">
+  <div class="mh"><h3>➕ New Project</h3><button class="xbtn" onclick="document.getElementById('addProjM').classList.remove('open')">✕</button></div>
+  <div class="mc">
+    <div class="fg"><label class="fl">ชื่อ Project *</label><input class="fc" id="apName" placeholder="ชื่อ project..."></div>
+    <div class="fg"><label class="fl">Google Sheet URL</label><input class="fc" id="apSheet" placeholder="https://docs.google.com/spreadsheets/d/..."></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn bp" style="flex:1" onclick="createProject()">➕ สร้าง Project</button>
+      <button class="btn bs" onclick="document.getElementById('addProjM').classList.remove('open')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="mo" id="addUserM" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="mb" style="max-width:500px">
+  <div class="mh"><h3>➕ New User</h3><button class="xbtn" onclick="document.getElementById('addUserM').classList.remove('open')">✕</button></div>
+  <div class="mc">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label class="fl">ชื่อ *</label><input class="fc" id="auName" placeholder="ชื่อ..."></div>
+      <div class="fg"><label class="fl">PIN *</label>
+        <div style="position:relative">
+          <input class="fc" id="auPin" type="password" placeholder="PIN..." style="padding-right:36px">
+          <button class="eye" type="button" onclick="toggleEye('auPin',this)">👁</button>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Role</label><select class="fc" id="auRole"><option value="user">user</option><option value="admin">admin</option></select></div>
+      <div class="fg"><label class="fl">Projects Access</label><select class="fc" id="auProj" multiple style="height:90px"></select></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn bp" style="flex:1" id="userSaveBtn" onclick="createUser()">➕ เพิ่ม User</button>
+      <button class="btn bs" onclick="document.getElementById('addUserM').classList.remove('open');document.getElementById('addUserM').dataset.editId=''">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ============================================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxuV7J-pz-8PdLEzxXXir1vfw4kz-ojWAxYXRtAAjDPeSNxVE9kBKPsmM-MyoMJvm85gQ/exec';
+const IMGBB_KEY = 'b71129aa3946d4bfacd846e5540a442a';
+
+let bugs=[], currentProject=null, allProjMode=false;
+let masterEnvs=[], masterMods=[], masterSevs=[], masterStats=[];
+let sev='medium', tool='rect', color='#ef4444', bsz=2;
+let drawing=false, sx, sy, penPts=[];
+let hist=[], hi=-1, gotCap=false;
+let drawGen=0;
+let collageMode=false, collageItems=[], colDragIdx=-1, colDragOX=0, colDragOY=0;
+let colResizeIdx=-1, colResizeOX=0, colResizeOY=0, colResizeW=0, colResizeH=0;
+const RHANDLE=14;
+let selMode=false, selSet=new Set();
+let ecv=null, ecx=null, eGotCap=false, eTool='rect', eColor='#ef4444', eBsz=2;
+let eHist=[], eHi=-1, eDrawing=false, eSx=0, eSy=0, ePenPts=[];
+let eCollageMode=false, eCollageItems=[], eColDragIdx=-1, eColResizeIdx=-1;
+let eColDragOX=0, eColDragOY=0, eColResizeOX=0, eColResizeOY=0, eColResizeW=0, eColResizeH=0;
+const ERHANDLE=12;
+let editMode=false; let _viewBug=null; let _origTexts=null;
+let allProjects=[], allUsers=[];
+let homeMdEnvs=[], homeMdMods=[], homeMdSevs=[], homeMdStats=[], homeMdProj=null;
+let mdActiveTab='env';
+
+const cv=document.getElementById('cv');
+const cx=cv.getContext('2d');
+
+// SESSION
+function getSession(){ return JSON.parse(sessionStorage.getItem('session')||'null'); }
+function setSession(s){ sessionStorage.setItem('session',JSON.stringify(s)); }
+function clearSession(){ sessionStorage.removeItem('session'); }
+function isAdmin(){ return getSession()?.role==='admin'; }
+
+// API
+async function api(action,data={}){
+  const sess=getSession();
+  const body={action,authUser:sess?.name||'',userRole:sess?.role||'',userProjects:sess?.projects||[],...data};
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});
+    return JSON.parse(await res.text());
+  }catch(e){ return{error:e.message}; }
+}
+
+// SCREENS
+function showScreen(name){
+  ['Login','Home','App'].forEach(s=>{
+    document.getElementById('screen'+s).classList.toggle('active',s.toLowerCase()===name);
+  });
+}
+
+// LOGIN
+async function doLogin(){
+  const username=document.getElementById('loginUser').value.trim();
+  const pin=document.getElementById('loginPin').value.trim();
+  if(!username||!pin){toast('กรุณากรอกชื่อและ PIN','err');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true; btn.textContent='กำลังเข้าสู่ระบบ...';
+  document.getElementById('loginErr').style.display='none';
+  const j=await api('login',{username,pin});
+  if(j.success&&j.user){
+    setSession(j.user);
+    await loadHome();
+  } else {
+    document.getElementById('loginErr').style.display='';
+    document.getElementById('loginErr').textContent='❌ '+(j.message||'ชื่อหรือ PIN ไม่ถูกต้อง');
+  }
+  btn.disabled=false; btn.textContent='เข้าสู่ระบบ →';
+}
+
+function doLogout(){
+  clearSession(); currentProject=null; bugs=[];
+  showScreen('login');
+  document.getElementById('loginPin').value='';
+  document.getElementById('loginErr').style.display='none';
+}
+
+function toggleEye(id,btn){
+  const inp=document.getElementById(id);
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.style.opacity=show?'1':'0.4';
+}
+
+// HOME
+async function loadHome(){
+  const sess=getSession();
+  // Update sidebar
+  document.getElementById('sbAv').textContent=(sess.name||'?').slice(0,2).toUpperCase();
+  document.getElementById('sbName').textContent=sess.name||'—';
+  document.getElementById('sbRole').textContent=sess.role||'user';
+  if(isAdmin()){
+    document.getElementById('adminSection').style.display='';
+    document.getElementById('snav-master').style.display='';
+    document.getElementById('snav-users').style.display='';
+    document.getElementById('snav-allbugs').style.display='';
+    document.getElementById('addProjBtn').style.display='';
+    showScreen('home');
+    switchHome('projects');
+    loadProjects();
+    // โหลด badge count All Bugs ตั้งแต่เริ่ม
+    api('get_all_bugs').then(j=>{
+      if(j.bugs){ const ab=document.getElementById('allBugsBadge'); if(ab) ab.textContent=j.bugs.length; }
+    });
+  } else {
+    // Regular user → load projects then go directly to the first assigned project's report screen
+    const j=await api('get_projects');
+    allProjects=j.projects||[];
+    const userProjs=sess.projects||[];
+    // find first project this user has access to
+    const firstProj=userProjs.length
+      ? allProjects.find(p=>userProjs.includes(p.id)||userProjs.includes(p.name))
+      : allProjects[0];
+    if(firstProj){ enterProject(firstProj); }
+    else{
+      // no project assigned — show home with project list only
+      showScreen('home');
+      switchHome('projects');
+      loadProjects();
+    }
+  }
+}
+
+function switchHome(tab){
+  ['projects','master','users','allbugs'].forEach(t=>{
+    document.getElementById('ht-'+t)?.classList.toggle('active',t===tab);
+    document.getElementById('snav-'+t)?.classList.toggle('on',t===tab);
+  });
+  if(tab==='users') loadUsersTab();
+  if(tab==='master') loadMasterTab();
+  if(tab==='allbugs') loadHomeAllBugs();
+}
+
+async function loadProjects(){
+  const grid=document.getElementById('projGrid');
+  grid.innerHTML='<div style="padding:40px;text-align:center;color:#94a3b8"><span class="spin" style="border-top-color:#1e40af;border-color:rgba(30,64,175,.3)"></span></div>';
+  const j=await api('get_projects');
+  allProjects=j.projects||[];
+  document.getElementById('projBadge').textContent=allProjects.length;
+  renderProjectsList();
+  const ms=document.getElementById('mdProjSel');
+  ms.innerHTML='<option value="">— เลือก Project —</option>'+allProjects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const us=document.getElementById('auProj');
+  us.innerHTML=allProjects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+}
+
+function renderProjectsList(filter=''){
+  const grid=document.getElementById('projGrid');
+  const q=(filter||'').toLowerCase();
+  const filtered=allProjects.filter(p=>(p.name||'').toLowerCase().includes(q));
+  let html='';
+  // Filter bar
+  html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <input class="fc" id="projFilter" value="${esc(filter)}" placeholder="🔍 ค้นหาชื่อ project..." style="max-width:280px" oninput="renderProjectsList(this.value)">
+    <span style="font-size:12px;color:#94a3b8;padding:6px 0">${filtered.length} / ${allProjects.length} projects</span>
+  </div>`;
+  // Table
+  html+=`<div style="background:#fff;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#f8fafc;border-bottom:2px solid #e5e7eb">
+        <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Project</th>
+        <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Master Data</th>
+        <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Google Sheet</th>
+        <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Actions</th>
+      </tr></thead>
+      <tbody id="projTbody"></tbody>
+    </table>
+  </div>`;
+  grid.innerHTML=html;
+  const tbody=document.getElementById('projTbody');
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="4" style="padding:40px;text-align:center;color:#94a3b8">ไม่พบ project</td></tr>'; return;
+  }
+  filtered.forEach(p=>{
+    const envs=parseArr(p.envs,[]); const mods=parseArr(p.mods,[]); const sevs=parseArr(p.sevs,[]); const stats=parseArr(p.stats,[]);
+    const tr=document.createElement('tr');
+    tr.id='ptr-'+p.id;
+    tr.style.cssText='border-bottom:1px solid #f1f5f9;transition:background .15s';
+    tr.onmouseover=()=>tr.style.background='#f8fafc';
+    tr.onmouseout=()=>tr.style.background='';
+    tr.innerHTML=`
+      <td style="padding:14px 16px;min-width:180px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📁</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:#0f172a">${esc(p.name)}</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;font-family:monospace">${p.id||'—'}</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding:14px 16px;font-size:12px;color:#64748b">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <span>🌐 ${envs.length} Env${envs.length!==1?'s':''}</span>
+          <span>📦 ${mods.length} Module${mods.length!==1?'s':''}</span>
+          <span>🔴 ${sevs.length} Severity · 📋 ${stats.length} Status</span>
+        </div>
+      </td>
+      <td style="padding:14px 16px">
+        ${p.sheetUrl?`<a href="${esc(p.sheetUrl)}" target="_blank" style="color:#1e40af;font-size:12px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:4px">📊 Sheet linked <span style="color:#94a3b8">↗</span></a>`:`<span style="color:#94a3b8;font-size:12px">ไม่มี Sheet</span>`}
+      </td>
+      <td style="padding:14px 16px">
+        <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn bp" style="font-size:12px;padding:6px 14px" onclick="enterProjectById('${p.id}')">→ Enter</button>
+          <button class="btn bs" style="font-size:12px;padding:6px 12px" onclick="startEditProject('${p.id}')">✏ Edit</button>
+          <button class="btn bd" style="font-size:12px;padding:6px 12px" onclick="deleteProject('${p.id}','${esc(p.name)}')">🗑</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function enterProjectById(id){ const p=allProjects.find(x=>x.id===id); if(p) enterProject(p); }
+
+function startEditProject(id){
+  const p=allProjects.find(x=>x.id===id); if(!p) return;
+  const tr=document.getElementById('ptr-'+id); if(!tr) return;
+  tr.innerHTML=`<td colspan="4" style="padding:12px 16px;background:#f0f7ff">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="width:38px;height:38px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📁</div>
+      <input class="fc" id="ep-name-${id}" value="${esc(p.name)}" placeholder="ชื่อ project..." style="flex:1;min-width:150px;max-width:220px">
+      <input class="fc" id="ep-sheet-${id}" value="${esc(p.sheetUrl||'')}" placeholder="Google Sheet URL..." style="flex:2;min-width:200px">
+      <button class="btn bp" style="font-size:12px;padding:7px 14px;white-space:nowrap" onclick="saveEditProject('${id}')">💾 Save</button>
+      <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="renderProjectsList()">✕</button>
+    </div>
+  </td>`;
+}
+
+async function saveEditProject(id){
+  const p=allProjects.find(x=>x.id===id); if(!p) return;
+  const name=document.getElementById('ep-name-'+id)?.value.trim();
+  const sheetUrl=document.getElementById('ep-sheet-'+id)?.value.trim();
+  if(!name){toast('กรอกชื่อ project','err');return;}
+  const j=await api('update_project',{id,name,sheetUrl:sheetUrl||'',envs:p.envs||[],mods:p.mods||[],sevs:p.sevs||[],stats:p.stats||[]});
+  if(j.success||j.ok){ toast('บันทึกแล้ว','ok'); p.name=name; p.sheetUrl=sheetUrl||''; renderProjectsList(); }
+  else toast('บันทึกไม่สำเร็จ','err');
+}
+
+function showAddProject(){ document.getElementById('addProjM').classList.add('open'); document.getElementById('apName').value=''; document.getElementById('apSheet').value=''; }
+
+async function createProject(){
+  const name=document.getElementById('apName').value.trim();
+  const sheetUrl=document.getElementById('apSheet').value.trim();
+  if(!name){toast('กรอกชื่อ project','err');return;}
+  const j=await api('create_project',{name,sheetUrl});
+  if(j.success||j.ok){ toast('สร้าง project แล้ว','ok'); document.getElementById('addProjM').classList.remove('open'); loadProjects(); }
+  else toast('สร้างไม่สำเร็จ: '+(j.error||''),'err');
+}
+
+async function deleteProject(id,name){
+  if(!confirm('ลบ project "'+name+'"? (bugs จะหายหมด)')) return;
+  const j=await api('delete_project',{id});
+  if(j.success||j.ok){ toast('ลบแล้ว','ok'); loadProjects(); }
+  else toast('ลบไม่สำเร็จ','err');
+}
+
+// ALL BUGS HOME TAB
+let habBugs=[];
+async function loadHomeAllBugs(){
+  document.getElementById('hab-lrow').style.display='block';
+  document.getElementById('hab-bgrid').style.display='none';
+  document.getElementById('hab-emp').style.display='none';
+  document.getElementById('hab-srow').innerHTML='';
+  const j=await api('get_all_bugs');
+  if(j.bugs){
+    habBugs=j.bugs.map(normBug);
+    const ab=document.getElementById('allBugsBadge'); if(ab) ab.textContent=habBugs.length;
+    document.getElementById('hab-sub').textContent=habBugs.length+' bugs รวมจากทุก project';
+  } else { toast('โหลด bug ไม่ได้','err'); habBugs=[]; }
+  // populate project filter from allProjects (always, not from bug data)
+  document.getElementById('hab-fproj').innerHTML='<option value="">All Projects</option>'+allProjects.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
+  // populate reporter from bug data or users
+  const reps=[...new Set([...habBugs.map(b=>b.reporter),...allUsers.map(u=>u.name)].filter(Boolean))];
+  document.getElementById('hab-frep').innerHTML='<option value="">All Reporter</option>'+reps.map(n=>`<option>${esc(n)}</option>`).join('');
+  // populate module from all projects' mods merged
+  const allMods=[...new Set(allProjects.flatMap(p=>parseArr(p.mods,[])).concat(habBugs.map(b=>b.module)).filter(Boolean))];
+  document.getElementById('hab-fmod').innerHTML='<option value="">All Module</option>'+allMods.map(n=>`<option>${esc(n)}</option>`).join('');
+  // severity/status
+  const allSevs=[...new Set(allProjects.flatMap(p=>parseArr(p.sevs,['critical','high','medium','low','info'])))];
+  document.getElementById('hab-fsev').innerHTML='<option value="">All Severity</option>'+allSevs.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  const allStats=[...new Set(allProjects.flatMap(p=>parseArr(p.stats,['open','in_progress','resolved','closed'])))];
+  document.getElementById('hab-fst').innerHTML='<option value="">All Status</option>'+allStats.map(v=>`<option value="${esc(v)}">${v.replace(/_/g,' ')}</option>`).join('');
+  document.getElementById('hab-lrow').style.display='none';
+  document.getElementById('hab-bgrid').style.display='';
+  renderHABStats(); renderHAB();
+}
+
+function renderHABStats(){
+  const t=habBugs.length,op=habBugs.filter(b=>b.status==='open').length,cr=habBugs.filter(b=>b.severity==='critical').length,hi=habBugs.filter(b=>b.severity==='high').length,rs=habBugs.filter(b=>b.status==='resolved').length,cl=habBugs.filter(b=>b.status==='closed').length;
+  document.getElementById('hab-srow').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${t}</div><div class="stat-lbl">Total Bugs</div></div>
+    <div class="stat-card blue"><div class="stat-num">${op}</div><div class="stat-lbl">Open</div></div>
+    <div class="stat-card red"><div class="stat-num">${cr}</div><div class="stat-lbl">Critical</div></div>
+    <div class="stat-card orange"><div class="stat-num">${hi}</div><div class="stat-lbl">High</div></div>
+    <div class="stat-card green"><div class="stat-num">${rs}</div><div class="stat-lbl">Resolved</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#64748b">${cl}</div><div class="stat-lbl">Closed</div></div>`;
+}
+
+function renderHAB(){
+  const s=(document.getElementById('hab-fs')?.value||'').toLowerCase();
+  const sp=document.getElementById('hab-fproj')?.value||'';
+  const sv=document.getElementById('hab-fsev')?.value||'';
+  const ss=document.getElementById('hab-fst')?.value||'';
+  const sr=document.getElementById('hab-frep')?.value||'';
+  const sm=document.getElementById('hab-fmod')?.value||'';
+  const sdFrom=document.getElementById('hab-fdFrom')?.value||'';
+  const sdTo=document.getElementById('hab-fdTo')?.value||'';
+  const f=habBugs.filter(b=>{
+    if(s&&!(b.title||'').toLowerCase().includes(s)&&!(b.description||'').toLowerCase().includes(s)) return false;
+    if(sp&&(b._project||'')!==sp) return false;
+    if(sv&&b.severity!==sv) return false;
+    if(ss&&b.status!==ss) return false;
+    if(sr&&b.reporter!==sr) return false;
+    if(sm&&(b.module||'').toUpperCase()!==sm.toUpperCase()) return false;
+    if(sdFrom||sdTo){const d=(b.createdAt||'').slice(0,10);if(sdFrom&&d<sdFrom)return false;if(sdTo&&d>sdTo)return false;}
+    return true;
+  });
+  document.getElementById('hab-count').textContent=f.length+' / '+habBugs.length+' bugs';
+  const g=document.getElementById('hab-bgrid'), e=document.getElementById('hab-emp');
+  if(!f.length){g.innerHTML='';e.style.display='block';return;}
+  e.style.display='none';
+  g.innerHTML=f.map(b=>{
+    const pBadge=b._project?`<span style="background:#fef9c3;color:#92400e;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">📁 ${esc(b._project)}</span>`:'';
+    const img=b.screenshot?`<img class="bimg" src="${esc(b.screenshot)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
+    const noImg=`<div class="bnimg" style="${b.screenshot?'display:none':''}">📷</div>`;
+    const note=b.description?`<div class="bnote">${esc(b.description)}</div>`:'';
+    return `<div class="bc" onclick="openHABBug('${b.id}','${b._projectId||''}','${esc(b._project||'')}')">
+      ${img}${noImg}
+      <div class="bbody">
+        <div class="bmeta"><span class="sbadge ${b.severity}">${b.severity}</span><span class="stbadge ${b.status}">${(b.status||'').replace(/_/g,' ')}</span>${pBadge}</div>
+        <div class="btitle">${esc(b.title)}</div>
+        ${b.module||b.feature?`<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">${[b.module,b.feature].filter(Boolean).map(v=>esc(v)).join(' · ')}</div>`:''}
+        ${note}
+        <div class="bfoot">
+          <div style="display:flex;align-items:center;gap:6px"><div class="av">${(b.reporter||'?').slice(0,2).toUpperCase()}</div><span style="font-size:11px;color:#64748b">${esc(b.reporter||'')}</span></div>
+          <span style="font-size:10px;color:#94a3b8">${fdate(b.createdAt)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearHABF(){
+  ['hab-fs','hab-fproj','hab-fsev','hab-fst','hab-frep','hab-fmod','hab-fdFrom','hab-fdTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  renderHAB();
+}
+
+function openHABBug(id, projectId, projectName){
+  const b=habBugs.find(b=>b.id===id); if(!b)return;
+  // inject into bugs array temporarily so openBug/renderBugView can find it
+  const prev=bugs; bugs=[b];
+  _viewBug=b; editMode=false;
+  document.getElementById('bmTitle').textContent=b.title;
+  document.getElementById('bmEditBtn').style.display='none';
+  document.getElementById('bugM').classList.add('open');
+  renderBugView();
+  // restore on close — patch closeBug once
+  const origClose=window._habCloseOrig;
+  if(!origClose){
+    window._habCloseOrig=closeBug;
+    window.closeBug=function(){
+      bugs=prev; document.getElementById('bmEditBtn').style.display='';
+      window.closeBug=window._habCloseOrig; window._habCloseOrig=null;
+      _viewBug=null; editMode=false;
+      document.getElementById('bugM').classList.remove('open');
+    };
+  }
+}
+
+// MASTER DATA TAB
+async function loadMasterTab(){
+  // Show all combined master data immediately (no project selected yet)
+  loadMasterForProj();
+}
+
+function getMdAllCombined(){
+  // Combine all values from all projects (deduplicated)
+  const envDef=['UAT AIDC','UAT BOL','Production AIDC','Production BOL','DEV BOL'];
+  const modDef=['BOL','CB','Mobile'];
+  const sevDef=['critical','high','medium','low','info'];
+  const staDef=['open','in_progress','resolved','closed'];
+  if(!allProjects.length){
+    return {envs:[...envDef],mods:[...modDef],sevs:[...sevDef],stats:[...staDef]};
+  }
+  const envs=[...new Set(allProjects.flatMap(p=>parseArr(p.envs,envDef)))];
+  const mods=[...new Set(allProjects.flatMap(p=>parseArr(p.mods,modDef)))];
+  const sevs=[...new Set(allProjects.flatMap(p=>parseArr(p.sevs,sevDef)))];
+  const stats=[...new Set(allProjects.flatMap(p=>parseArr(p.stats,staDef)))];
+  return {envs,mods,sevs,stats};
+}
+
+function parseArr(v, def){
+  if(Array.isArray(v) && v.length) return v.map(String);
+  if(typeof v==='string' && v.trim()){
+    try{ const a=JSON.parse(v); if(Array.isArray(a)) return a.map(String); }catch(e){}
+    return v.split(',').map(s=>s.trim()).filter(Boolean);
+  }
+  return def;
+}
+
+async function loadMasterForProj(){
+  const id=document.getElementById('mdProjSel').value;
+  if(!id){
+    // No project selected — show combined data from all projects (read-only)
+    homeMdProj=null;
+    const combined=getMdAllCombined();
+    homeMdEnvs=combined.envs; homeMdMods=combined.mods; homeMdSevs=combined.sevs; homeMdStats=combined.stats;
+    mdActiveTab='env';
+    renderMdContent();
+    return;
+  }
+  homeMdProj=allProjects.find(p=>p.id===id);
+  if(!homeMdProj){ return; }
+  homeMdEnvs=parseArr(homeMdProj.envs,['UAT AIDC','UAT BOL','Production AIDC','Production BOL','DEV BOL']);
+  homeMdMods=parseArr(homeMdProj.mods,['BOL','CB','Mobile']);
+  homeMdSevs=parseArr(homeMdProj.sevs,['critical','high','medium','low','info']);
+  homeMdStats=parseArr(homeMdProj.stats,['open','in_progress','resolved','closed']);
+  mdActiveTab='env';
+  renderMdContent();
+}
+
+function renderMdContent(){
+  const tabs=[
+    {key:'env',label:'🌐 Environment',arr:homeMdEnvs},
+    {key:'mod',label:'📦 Module',arr:homeMdMods},
+    {key:'sev',label:'🔴 Severity',arr:homeMdSevs},
+    {key:'stat',label:'📋 Status',arr:homeMdStats}
+  ];
+  const active=tabs.find(t=>t.key===mdActiveTab)||tabs[0];
+  const arr=active.arr;
+  const filterVal=document.getElementById('mdItemFilter')?.value||'';
+  const filtered=arr.filter(v=>v.toLowerCase().includes(filterVal.toLowerCase()));
+
+  document.getElementById('mdContent').innerHTML=`
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap">
+      ${tabs.map(t=>`<button onclick="mdActiveTab='${t.key}';renderMdContent()" style="padding:8px 18px;border-radius:20px;border:2px solid ${t.key===mdActiveTab?'#1e40af':'#e2e8f0'};background:${t.key===mdActiveTab?'#1e40af':'#fff'};color:${t.key===mdActiveTab?'#fff':'#64748b'};font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">${t.label} <span style="opacity:.7;font-size:11px">(${t.arr.length})</span></button>`).join('')}
+    </div>
+    <!-- Active section -->
+    <div class="card-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <h3 style="margin:0">${active.label} <span style="font-weight:400;color:#94a3b8;font-size:12px">${arr.length} รายการ</span></h3>
+          ${!homeMdProj?'<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠ ดูรวมทุก project — เลือก project เพื่อแก้ไข</div>':'<div style="font-size:11px;color:#22c55e;margin-top:3px">✏ แก้ไข: '+esc(homeMdProj.name)+'</div>'}
+        </div>
+        <button class="btn bp" style="padding:7px 14px;font-size:12px;opacity:${homeMdProj?1:0.4};cursor:${homeMdProj?'pointer':'not-allowed'}" onclick="${homeMdProj?'saveMasterData()':'void(0)'}" title="${homeMdProj?'บันทึก':'เลือก project ก่อนบันทึก'}">💾 บันทึก</button>
+      </div>
+      <!-- Filter -->
+      <input class="fc" id="mdItemFilter" placeholder="🔍 ค้นหาใน ${active.label}..." style="margin-bottom:12px" value="${esc(filterVal)}" oninput="renderMdContent()">
+      <!-- List -->
+      <div class="mdlist">
+        ${filtered.length?filtered.map(v=>{const i=arr.indexOf(v);return`<div class="mditem">
+          <input value="${esc(v)}" onchange="mdUpdate('${active.key}',${i},this.value)">
+          <button class="rm" onclick="mdRemove('${active.key}',${i})">✕</button>
+        </div>`;}).join(''):'<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">ไม่พบรายการ</div>'}
+      </div>
+      <!-- Add new -->
+      <div class="md-add" style="margin-top:10px">
+        <input class="fc" id="mdinp-${active.key}" style="flex:1" placeholder="เพิ่มรายการใหม่...">
+        <button class="btn bp" style="padding:8px 16px;font-size:13px;white-space:nowrap" onclick="mdAdd('${active.key}')">+ เพิ่ม</button>
+      </div>
+    </div>`;
+}
+
+function mdArr(key){ return key==='env'?homeMdEnvs:key==='mod'?homeMdMods:key==='sev'?homeMdSevs:homeMdStats; }
+function mdUpdate(key,i,val){ mdArr(key)[i]=val; }
+function mdRemove(key,i){ mdArr(key).splice(i,1); renderMdContent(); document.getElementById('mdProjSel').value=homeMdProj?.id||''; }
+function mdAdd(key){ const inp=document.getElementById('mdinp-'+key); const v=inp.value.trim(); if(!v)return; mdArr(key).push(v); inp.value=''; renderMdContent(); document.getElementById('mdProjSel').value=homeMdProj?.id||''; }
+
+async function saveMasterData(){
+  if(!homeMdProj)return;
+  const j=await api('update_project',{id:homeMdProj.id,name:homeMdProj.name,sheetUrl:homeMdProj.sheetUrl,envs:homeMdEnvs,mods:homeMdMods,sevs:homeMdSevs,stats:homeMdStats});
+  if(j.success||j.ok){
+    homeMdProj.envs=homeMdEnvs; homeMdProj.mods=homeMdMods; homeMdProj.sevs=homeMdSevs; homeMdProj.stats=homeMdStats;
+    if(currentProject?.id===homeMdProj.id){ masterEnvs=homeMdEnvs; masterMods=homeMdMods; masterSevs=homeMdSevs; masterStats=homeMdStats; populateDropdowns(); }
+    toast('บันทึก Master Data แล้ว','ok');
+  } else toast('บันทึกไม่สำเร็จ','err');
+}
+
+// USERS TAB
+async function loadUsersTab(){
+  document.getElementById('usersContent').innerHTML='<div style="padding:40px;text-align:center;color:#94a3b8"><span class="spin" style="border-top-color:#1e40af;border-color:rgba(30,64,175,.3)"></span></div>';
+  const j=await api('get_users');
+  allUsers=j.users||[];
+  renderUsersContent();
+}
+
+function renderUsersContent(nameFilter='', roleFilter=''){
+  const el=document.getElementById('usersContent');
+  const nf=(nameFilter||'').toLowerCase();
+  const rf=(roleFilter||'').toLowerCase();
+  const filtered=allUsers.filter(u=>{
+    if(nf&&!(u.name||'').toLowerCase().includes(nf)) return false;
+    if(rf&&(u.role||'user')!==rf) return false;
+    return true;
+  });
+
+  el.innerHTML=`
+    <!-- Filter bar -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center;flex-wrap:wrap">
+      <input class="fc" id="userNameFilter" value="${esc(nameFilter)}" placeholder="🔍 ค้นหาชื่อ..." style="max-width:260px" oninput="renderUsersContent(this.value,document.getElementById('userRoleFilter').value)">
+      <select class="fc" id="userRoleFilter" style="max-width:160px" onchange="renderUsersContent(document.getElementById('userNameFilter').value,this.value)">
+        <option value="" ${!roleFilter?'selected':''}>All Roles</option>
+        <option value="admin" ${roleFilter==='admin'?'selected':''}>Admin</option>
+        <option value="user" ${roleFilter==='user'?'selected':''}>User</option>
+      </select>
+      <span style="font-size:12px;color:#94a3b8">${filtered.length} / ${allUsers.length} users</span>
+    </div>
+    <!-- Table -->
+    <div style="background:#fff;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f8fafc;border-bottom:2px solid #e5e7eb">
+          <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">User</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Role</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Projects Access</th>
+          <th style="padding:12px 16px;text-align:right;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Actions</th>
+        </tr></thead>
+        <tbody>
+          ${filtered.length?filtered.map(u=>`
+            <tr style="border-bottom:1px solid #f1f5f9">
+              <td style="padding:13px 16px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div class="av" style="width:36px;height:36px;font-size:13px;border-radius:9px;flex-shrink:0">${(u.name||'?').slice(0,2).toUpperCase()}</div>
+                  <div><div style="font-weight:700;font-size:14px">${esc(u.name)}</div><div style="font-size:11px;color:#94a3b8">${u.active===false?'<span style="color:#dc2626">Inactive</span>':'Active'}</div></div>
+                </div>
+              </td>
+              <td style="padding:13px 16px">
+                <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${u.role==='admin'?'#ede9fe':'#f0fdf4'};color:${u.role==='admin'?'#7c3aed':'#15803d'}">${u.role||'user'}</span>
+              </td>
+              <td style="padding:13px 16px;font-size:12px;color:#64748b">${u.projects?.length?u.projects.slice(0,3).map(pid=>{const p=allProjects.find(x=>x.id===pid); return p?p.name:pid;}).join(', ')+(u.projects.length>3?` +${u.projects.length-3} more`:''):'<span style="color:#94a3b8">All projects</span>'}</td>
+              <td style="padding:13px 16px;text-align:right">
+                <div style="display:flex;gap:6px;justify-content:flex-end">
+                  <button class="btn bs" style="font-size:12px;padding:5px 12px" onclick="editUserInline('${u.id}')">✏ Edit</button>
+                  <button class="btn bd" style="font-size:12px;padding:5px 10px" onclick="deleteUser('${u.id}','${esc(u.name)}')">🗑</button>
+                </div>
+              </td>
+            </tr>`).join(''):'<tr><td colspan="4" style="padding:40px;text-align:center;color:#94a3b8">ไม่พบ user</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function editUserInline(id){
+  const u=allUsers.find(x=>x.id===id); if(!u) return;
+  const projOpts=allProjects.map(p=>`<option value="${p.id}" ${u.projects?.includes(p.id)?'selected':''}>${esc(p.name)}</option>`).join('');
+  // Show edit modal pre-filled
+  document.getElementById('auName').value=u.name||'';
+  document.getElementById('auPin').value='';
+  document.getElementById('auRole').value=u.role||'user';
+  // pre-select projects
+  const sel=document.getElementById('auProj');
+  [...sel.options].forEach(o=>{ o.selected=(u.projects||[]).includes(o.value); });
+  // Change modal save button to update
+  document.getElementById('addUserM').classList.add('open');
+  document.getElementById('addUserM').dataset.editId=id;
+  document.getElementById('addUserM').querySelector('h3').textContent='✏ Edit User';
+  document.getElementById('userSaveBtn').textContent='💾 บันทึก';
+}
+
+function showAddUser(){
+  document.getElementById('addUserM').classList.add('open');
+  ['auName','auPin'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('auRole').value='user';
+  document.getElementById('addUserM').dataset.editId='';
+  document.getElementById('addUserM').querySelector('h3').textContent='➕ New User';
+  document.getElementById('userSaveBtn').textContent='➕ เพิ่ม User';
+  [...document.getElementById('auProj').options].forEach(o=>o.selected=false);
+}
+
+async function createUser(){
+  const name=document.getElementById('auName').value.trim();
+  const pin=document.getElementById('auPin').value.trim();
+  const role=document.getElementById('auRole').value;
+  const projects=[...document.getElementById('auProj').selectedOptions].map(o=>o.value);
+  const editId=document.getElementById('addUserM').dataset.editId||'';
+  if(!name){toast('กรอกชื่อ','err');return;}
+  if(!editId&&!pin){toast('กรอก PIN','err');return;}
+  const payload={name,role,projects};
+  if(pin) payload.pin=pin;
+  const action=editId?'update_user':'create_user';
+  if(editId) payload.id=editId;
+  const j=await api(action,payload);
+  if(j.success||j.ok){
+    toast(editId?'อัปเดต user แล้ว':'เพิ่ม user แล้ว','ok');
+    document.getElementById('addUserM').classList.remove('open');
+    document.getElementById('addUserM').dataset.editId='';
+    loadUsersTab();
+  } else toast('ไม่สำเร็จ: '+(j.error||''),'err');
+}
+
+async function deleteUser(id,name){
+  if(!confirm('ลบ user '+name+'?')) return;
+  const j=await api('delete_user',{id});
+  if(j.success||j.ok){ toast('ลบแล้ว','ok'); loadUsersTab(); }
+  else toast('ลบไม่สำเร็จ','err');
+}
+
+// ENTER PROJECT / APP
+function enterProject(p){
+  currentProject=p; allProjMode=false;
+  masterEnvs=[...(p.envs||['UAT AIDC','UAT BOL','Production AIDC','Production BOL','DEV BOL'])];
+  masterMods=[...(p.mods||['BOL','CB','Mobile'])];
+  masterSevs=[...(p.sevs||['critical','high','medium','low','info'])];
+  masterStats=[...(p.stats||['open','in_progress','resolved','closed'])];
+  populateDropdowns();
+  document.getElementById('appProjName').textContent=p.name;
+  const sl=document.getElementById('sheetLink');
+  sl.href=p.sheetUrl||'#'; sl.style.opacity=p.sheetUrl?'1':'0.45';
+  showScreen('app');
+  updateAppNavForRole();
+  switchAppTab('report');
+  loadBugs();
+}
+
+async function enterAllProjects(){
+  currentProject=null; allProjMode=true;
+  document.getElementById('appProjName').textContent='All Bugs 🐛';
+  document.getElementById('sheetLink').style.opacity='0.3';
+  showScreen('app');
+  switchAppTab('dashboard');
+  await loadAllBugs();
+}
+
+function backHome(){
+  if(isAdmin()){ showScreen('home'); }
+  else{ doLogout(); }
+}
+
+function updateAppNavForRole(){
+  const btn=document.getElementById('homeOrLogoutBtn');
+  if(!btn) return;
+  if(isAdmin()){ btn.textContent='← Home'; btn.title=''; }
+  else { btn.textContent='🚪 Logout'; btn.style.color='#ef4444'; btn.title='ออกจากระบบ'; }
+}
+
+function populateDropdowns(){
+  const envEl=document.getElementById('bEnv');
+  const modEl=document.getElementById('bMod');
+  if(envEl) envEl.innerHTML=masterEnvs.map(v=>`<option>${esc(v)}</option>`).join('');
+  if(modEl) modEl.innerHTML='<option value="">— Module —</option>'+masterMods.map(v=>`<option>${esc(v)}</option>`).join('');
+  const fsev=document.getElementById('fsev');
+  if(fsev) fsev.innerHTML='<option value="">All Severity</option>'+masterSevs.map(v=>`<option value="${v}">${v}</option>`).join('');
+  const fst=document.getElementById('fst');
+  if(fst) fst.innerHTML='<option value="">All Status</option>'+masterStats.map(v=>`<option value="${v}">${v.replace(/_/g,' ')}</option>`).join('');
+  const fmod=document.getElementById('fmod');
+  if(fmod) fmod.innerHTML='<option value="">All Module</option>'+masterMods.map(v=>`<option>${esc(v)}</option>`).join('');
+}
+
+function switchAppTab(name){
+  ['report','dashboard'].forEach(t=>{
+    document.getElementById('atab-'+t).classList.toggle('on',t===name);
+    document.getElementById('tc-'+t).classList.toggle('active',t===name);
+  });
+}
+
+function openSheetLink(e){
+  if(!currentProject?.sheetUrl){ toast('ยังไม่ได้ตั้ง Sheet URL','err'); e.preventDefault(); return false; }
+  return true;
+}
+
+// LOAD BUGS
+function normBug(b){ return {id:b.ID||b.id,title:b.Title||b.title,severity:(b.Severity||b.severity||'medium').toLowerCase(),status:(b.Status||b.status||'open').toLowerCase().replace(/ /g,'_'),module:b.Module||b.module||'',feature:b.Feature||b.feature||'',environment:b.Environment||b.environment||'',reporter:b.Reporter||b.reporter||'',description:b.Description||b.description||'',steps:b.Steps||b.steps||'',createdAt:b.CreatedAt||b.createdAt||'',screenshot:b.ImageURL||b.imageUrl||b.screenshot||'',_project:b._project||''}; }
+
+async function loadBugs(){
+  showLoading(true);
+  document.getElementById('fproj').style.display='none';
+  document.getElementById('fproj').value='';
+  if(!currentProject){ render(); showLoading(false); return; }
+  const j=await api('get_bugs',{projectId:currentProject.id});
+  if(j.bugs){ bugs=j.bugs.map(normBug); document.getElementById('dsub').textContent=bugs.length+' bugs'; }
+  else { toast('โหลดไม่ได้: '+(j.error||''),'err'); }
+  showLoading(false); updateBadge(); renderStats(); render(); renderRepFilter();
+}
+
+async function loadAllBugs(){
+  showLoading(true);
+  const j=await api('get_all_bugs');
+  if(j.bugs){
+    bugs=j.bugs.map(normBug);
+    document.getElementById('dsub').textContent=bugs.length+' bugs (all projects)';
+    const ab=document.getElementById('allBugsBadge'); if(ab) ab.textContent=bugs.length;
+    // show project filter with unique project names
+    const fp=document.getElementById('fproj');
+    fp.style.display='';
+    const projs=[...new Set(bugs.map(b=>b._project).filter(Boolean))];
+    fp.innerHTML='<option value="">All Projects</option>'+projs.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  } else toast('โหลดไม่ได้','err');
+  showLoading(false); updateBadge(); renderStats(); render(); renderRepFilter();
+}
+
+function showLoading(on){
+  document.getElementById('lrow').style.display=on?'block':'none';
+  document.getElementById('bgrid').style.display=on?'none':'';
+  if(on) document.getElementById('emp').style.display='none';
+}
+
+// RENDER
+function render(){
+  const s=(document.getElementById('fs')?.value||'').toLowerCase();
+  const sv=document.getElementById('fsev')?.value||'';
+  const ss=document.getElementById('fst')?.value||'';
+  const sr=document.getElementById('frep')?.value||'';
+  const sm=document.getElementById('fmod')?.value||'';
+  const sp=document.getElementById('fproj')?.value||'';
+  const sdFrom=document.getElementById('fdateFrom')?.value||'';
+  const sdTo=document.getElementById('fdateTo')?.value||'';
+  const f=bugs.filter(b=>{
+    if(s&&!(b.title||'').toLowerCase().includes(s)&&!(b.module||'').toLowerCase().includes(s)) return false;
+    if(sv&&b.severity!==sv) return false;
+    if(ss&&b.status!==ss) return false;
+    if(sr&&b.reporter!==sr) return false;
+    if(sm&&(b.module||'').toUpperCase()!==sm.toUpperCase()) return false;
+    if(sp&&(b._project||b._projectId||'')!==sp) return false;
+    if(sdFrom||sdTo){ const d=(b.createdAt||'').slice(0,10); if(sdFrom&&d<sdFrom)return false; if(sdTo&&d>sdTo)return false; }
+    return true;
+  });
+  const g=document.getElementById('bgrid');
+  const e=document.getElementById('emp');
+  if(!f.length){g.innerHTML='';e.style.display='block';return;}
+  e.style.display='none';
+  g.innerHTML=f.map(b=>{
+    const img=b.screenshot?`<img class="bimg" src="${esc(b.screenshot)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
+    const noImg=`<div class="bnimg" style="${b.screenshot?'display:none':''}">📷</div>`;
+    const note=b.description?`<div class="bnote">${esc(b.description)}</div>`:'';
+    const sel=selMode?`<input type="checkbox" class="bchk" data-id="${b.id}" onclick="event.stopPropagation();updateSelCount()" ${selSet.has(b.id)?'checked':''}>`:'';
+    const pBadge=b._project?`<span style="background:#fef9c3;color:#92400e;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">📁 ${esc(b._project)}</span>`:'';
+    return `<div class="bc${selSet.has(b.id)?' bc-sel':''}" onclick="${selMode?`toggleSel('${b.id}',this)`:`openBug('${b.id}')`}">
+      ${sel}<button class="delbtn" onclick="event.stopPropagation();quickDel('${b.id}')">🗑</button>
+      ${img}${noImg}
+      <div class="bbody">
+        <div class="bmeta"><span class="sbadge ${b.severity}">${b.severity}</span><span class="stbadge ${b.status}">${(b.status||'').replace(/_/g,' ')}</span>${pBadge}</div>
+        <div class="btitle">${esc(b.title)}</div>
+        ${b.module||b.feature?`<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">${[b.module,b.feature].filter(Boolean).map(v=>esc(v)).join(' · ')}</div>`:''}
+        ${note}
+        <div class="bfoot">
+          <div style="display:flex;align-items:center;gap:6px"><div class="av">${(b.reporter||'?').slice(0,2).toUpperCase()}</div><span style="font-size:11px;color:#64748b">${esc(b.reporter||'')}</span></div>
+          <span style="font-size:10px;color:#94a3b8">${fdate(b.createdAt)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderStats(){
+  const t=bugs.length,op=bugs.filter(b=>b.status==='open').length,cr=bugs.filter(b=>b.severity==='critical').length,hi=bugs.filter(b=>b.severity==='high').length,rs=bugs.filter(b=>b.status==='resolved').length,cl=bugs.filter(b=>b.status==='closed').length;
+  document.getElementById('srow').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${t}</div><div class="stat-lbl">Total Bugs</div></div>
+    <div class="stat-card blue"><div class="stat-num">${op}</div><div class="stat-lbl">Open</div></div>
+    <div class="stat-card red"><div class="stat-num">${cr}</div><div class="stat-lbl">Critical</div></div>
+    <div class="stat-card orange"><div class="stat-num">${hi}</div><div class="stat-lbl">High</div></div>
+    <div class="stat-card green"><div class="stat-num">${rs}</div><div class="stat-lbl">Resolved</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#64748b">${cl}</div><div class="stat-lbl">Closed</div></div>`;
+}
+
+function renderRepFilter(){
+  const fr=document.getElementById('frep');
+  const names=[...new Set(bugs.map(b=>b.reporter).filter(Boolean))];
+  fr.innerHTML='<option value="">All Reporter</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');
+}
+
+function clearF(){ ['fs','fsev','fst','frep','fmod','fproj','fdateFrom','fdateTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); render(); }
+function updateBadge(){}
+
+// SELECT & DELETE
+function toggleSelMode(){
+  selMode=!selMode; selSet.clear();
+  document.getElementById('selModeBtn').style.cssText=selMode?'font-size:12px;padding:7px 12px;background:#dbeafe;color:#1d4ed8':'font-size:12px;padding:7px 12px';
+  document.getElementById('delSelBtn').style.display=selMode?'':'none';
+  document.getElementById('selCount').textContent='0';
+  render();
+}
+function toggleSel(id,card){ if(selSet.has(id)){selSet.delete(id);card.classList.remove('bc-sel');}else{selSet.add(id);card.classList.add('bc-sel');} updateSelCount(); }
+function updateSelCount(){ selSet.clear(); document.querySelectorAll('.bchk:checked').forEach(c=>selSet.add(c.dataset.id)); document.getElementById('selCount').textContent=selSet.size; }
+async function delSelected(){
+  if(!selSet.size)return;
+  if(!confirm('ลบ '+selSet.size+' bugs?'))return;
+  for(const id of [...selSet]){ await api('delete_bug',{projectId:currentProject?.id,id}); bugs=bugs.filter(b=>b.id!==id); }
+  selSet.clear(); selMode=false; document.getElementById('delSelBtn').style.display='none';
+  renderStats(); render(); toast('ลบแล้ว','ok');
+}
+async function quickDel(id){
+  if(!confirm('ลบ bug นี้?'))return;
+  const j=await api('delete_bug',{projectId:currentProject?.id,id});
+  if(j.success||j.ok){bugs=bugs.filter(b=>b.id!==id);renderStats();render();toast('ลบแล้ว','ok');}
+  else toast('ลบไม่สำเร็จ','err');
+}
+
+// SUBMIT BUG
+async function submitBug(){
+  const title=document.getElementById('bTitle').value.trim();
+  const desc=document.getElementById('bDesc').value.trim();
+  if(!title){toast('กรุณาใส่ Title','err');return;}
+  if(!desc){toast('กรุณาใส่ Description','err');return;}
+  const sess=getSession();
+  const btn=document.getElementById('subBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Submitting...';
+
+  let imageUrl='';
+  if(gotCap){
+    try{
+      const tmp=document.createElement('canvas');
+      const maxW=1200, scale=cv.width>maxW?maxW/cv.width:1;
+      tmp.width=Math.round(cv.width*scale); tmp.height=Math.round(cv.height*scale);
+      tmp.getContext('2d').drawImage(cv,0,0,tmp.width,tmp.height);
+      const base64=tmp.toDataURL('image/jpeg',.65).replace(/^data:image\/\w+;base64,/,'');
+      const fd=new FormData(); fd.append('key',IMGBB_KEY); fd.append('image',base64);
+      const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
+      const j=await r.json(); if(j.success) imageUrl=j.data.url;
+    }catch(e){}
+  }
+
+  const j=await api('submit_bug',{
+    projectId:currentProject?.id,
+    title, severity:sev,
+    module:document.getElementById('bMod').value,
+    feature:document.getElementById('bFeat').value.trim(),
+    environment:document.getElementById('bEnv').value,
+    reporter:sess.name,
+    description:desc,
+    steps:document.getElementById('bSteps').value.trim(),
+    createdAt:new Date().toISOString(), imageUrl
+  });
+
+  btn.disabled=false; btn.innerHTML='🚀 Submit Bug Report';
+  if(j.success||j.ok){
+    toast('Submit สำเร็จ ✓','ok');
+    ['bTitle','bDesc','bSteps','bFeat'].forEach(id=>document.getElementById(id).value='');
+    clearCap();
+    bugs.unshift(normBug({ID:j.id||Date.now().toString(36),Title:title,Severity:sev,Status:'open',Module:document.getElementById('bMod').value,Feature:document.getElementById('bFeat').value,Environment:document.getElementById('bEnv').value,Reporter:sess.name,Description:desc,Steps:document.getElementById('bSteps').value,CreatedAt:new Date().toISOString(),ImageURL:imageUrl}));
+    updateBadge(); renderStats(); render();
+  } else toast('Submit ไม่สำเร็จ: '+(j.error||''),'err');
+}
+
+// BUG MODAL
+function openBug(id){
+  _viewBug=bugs.find(b=>b.id===id); if(!_viewBug)return;
+  editMode=false;
+  document.getElementById('bmTitle').textContent=_viewBug.title;
+  document.getElementById('bmEditBtn').textContent='✏ Edit';
+  document.getElementById('bugM').classList.add('open');
+  renderBugView();
+}
+function closeBug(){ document.getElementById('bugM').classList.remove('open'); editMode=false; _viewBug=null; }
+function toggleEditMode(){
+  editMode=!editMode;
+  document.getElementById('bmEditBtn').textContent=editMode?'← Back':'✏ Edit';
+  if(editMode){ renderBugEdit(); }
+  else{ document.removeEventListener('paste',eOnPaste); const mb=document.querySelector('#bugM .mb'); if(mb) mb.style.maxWidth=''; renderBugView(); }
+}
+
+function renderBugView(){
+  const b=_viewBug;
+  const statOpts=masterStats.map(s=>`<option value="${s}" ${b.status===s?'selected':''}>${s.replace(/_/g,' ')}</option>`).join('');
+  const pBadge=b._project?`<span style="background:#fef9c3;color:#92400e;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700">📁 ${esc(b._project)}</span>`:'';
+  // reset modal width to default for view mode
+  const mb=document.querySelector('#bugM .mb'); if(mb) mb.style.maxWidth='';
+  document.getElementById('bmContent').innerHTML=`
+    <!-- badges row -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <span class="sbadge ${b.severity}">${b.severity}</span>
+      <span class="stbadge ${b.status}">${(b.status||'').replace(/_/g,' ')}</span>
+      ${b.environment?`<span style="font-size:11px;color:#6b7280">${esc(b.environment)}</span>`:''}
+      ${pBadge}
+    </div>
+    <!-- body: LEFT (image+desc+steps) | RIGHT (details) — matches backup -->
+    <div style="display:grid;grid-template-columns:1fr 240px;gap:18px">
+      <div>
+        ${b.screenshot?`<div style="height:300px;background:#f1f5f9;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:zoom-in" onclick="openLb('${esc(b.screenshot)}')"><img src="${esc(b.screenshot)}" style="max-width:100%;max-height:100%;object-fit:contain;display:block" loading="lazy"></div>`:
+          '<div style="height:300px;background:#f8fafc;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;color:#94a3b8">ไม่มี screenshot</div>'}
+        ${b.description?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Description</div><p style="font-size:13px;line-height:1.7;white-space:pre-wrap;margin:0">${esc(b.description)}</p></div>`:''}
+        ${b.steps?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Steps to Reproduce</div><pre style="font-size:12px;background:#f8fafc;padding:11px;border-radius:7px;white-space:pre-wrap;line-height:1.7;margin:0">${esc(b.steps)}</pre></div>`:''}
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:9px">Details</div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px"><span style="color:#6b7280;font-weight:500">Bug ID</span><span style="font-weight:600;max-width:150px;word-break:break-all;text-align:right;color:#2563eb;font-family:monospace;font-size:11px">${esc(b.id||'—')}</span></div>
+        ${(b._project||(currentProject?.name))?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px"><span style="color:#6b7280;font-weight:500">Project</span><span style="font-weight:600;max-width:130px;word-break:break-word;text-align:right;color:#0f172a">${esc(b._project||currentProject?.name||'—')}</span></div>`:''}
+        ${[['Reporter',b.reporter],['Module',b.module],['Feature',b.feature],['Environment',b.environment],['Date',fdate(b.createdAt)]].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px"><span style="color:#6b7280;font-weight:500">${k}</span><span style="font-weight:600;max-width:130px;word-break:break-word;text-align:right;color:#0f172a">${esc(v||'—')}</span></div>`).join('')}
+      </div>
+    </div>
+    <!-- footer: status + actions -->
+    <div style="display:flex;align-items:center;gap:8px;padding-top:14px;margin-top:16px;border-top:1px solid #e5e7eb;flex-wrap:wrap">
+      <select class="fc" style="width:150px;font-size:13px" onchange="updateStatus('${b.id}',this.value)">${statOpts}</select>
+      <button class="btn bp" style="font-size:13px;padding:8px 18px" onclick="toggleEditMode()">✏ Edit</button>
+      <button class="btn bd" style="font-size:13px;padding:8px 18px" onclick="deleteBug('${b.id}')">🗑 Delete</button>
+      <button class="btn bs" style="font-size:13px;padding:8px 18px;margin-left:auto" onclick="closeBug()">Close</button>
+    </div>`;
+  document.getElementById('bmEditBtn').style.display='none';
+}
+
+function renderBugEdit(){
+  const b=_viewBug;
+  // expand modal width to match submit form
+  const mb=document.querySelector('#bugM .mb');
+  if(mb) mb.style.maxWidth='min(1160px,96vw)';
+  // fallback: collect from allProjects if masterXxx empty (admin context)
+  const sevList=masterSevs.length?masterSevs:[...new Set(allProjects.flatMap(p=>p.sevs||[]))].filter(Boolean);
+  const useSevs=sevList.length?sevList:['critical','high','medium','low','info'];
+  const envList=masterEnvs.length?masterEnvs:[...new Set(allProjects.flatMap(p=>p.envs||[]))].filter(Boolean);
+  const useEnvs=envList.length?envList:['UAT','UAT AIDC','Production','DEV'];
+  const modList=masterMods.length?masterMods:[...new Set(allProjects.flatMap(p=>p.mods||[]))].filter(Boolean);
+  const useMods=modList.length?modList:['BOL','CB','Mobile','Backend','Frontend'];
+  const sevPills=useSevs.map(s=>`<button class="pill ${s}${b.severity===s?' on':''}" onclick="window.eSev='${s}';this.closest('.sr').querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));this.classList.add('on')">${s}</button>`).join('');
+  const envOpts=useEnvs.map(v=>`<option ${b.environment===v?'selected':''}>${esc(v)}</option>`).join('');
+  const modOpts='<option value="">—</option>'+useMods.map(v=>`<option ${b.module===v?'selected':''}>${esc(v)}</option>`).join('');
+  window.eSev=b.severity;
+  document.getElementById('bmContent').innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+  <!-- LEFT: SCREENSHOT -->
+  <div class="card-section" style="margin:0;padding:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h4 style="margin:0;font-size:13px;font-weight:700;color:#0f172a">📷 Screenshot &amp; Annotation</h4>
+      <div style="display:flex;gap:6px">
+        <button id="eUnlockBtn" style="display:none;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:11px;padding:4px 10px;cursor:pointer;font-weight:600" onclick="eUnlockCollage()">🖼 แก้รูป</button>
+        <button id="eClrBtn" style="display:none;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;font-size:11px;padding:4px 10px;cursor:pointer;font-weight:600" onclick="eClearCap()">✕ Clear</button>
+      </div>
+    </div>
+    <div id="eTb" style="display:none;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:8px;padding:6px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px">
+      ${[['rect','□'],['arrow','↗'],['pen','✏'],['text','T'],['blur','▪']].map(([t,ic])=>`<button class="tbtn${t==='rect'?' on':''}" id="et-${t}" onclick="eSetTool('${t}')">${ic}</button>`).join('')}
+      <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+      ${['#ef4444','#3b82f6','#f59e0b','#10b981','#1a1a2e'].map((c,i)=>`<div class="ecol" onclick="eSetColor('${c}',this)" style="width:18px;height:18px;border-radius:50%;background:${c};cursor:pointer;outline:${i===0?'3px solid #1e3a5f':'none'};outline-offset:2px;flex-shrink:0"></div>`).join('')}
+      <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+      <input type="range" style="width:56px;accent-color:#2563eb" min="1" max="12" value="2" oninput="eBsz=+this.value">
+      <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+      <button class="tbtn" onclick="eUndo()">↩</button>
+      <button class="tbtn" onclick="eRedo()">↪</button>
+    </div>
+    <div id="eCapArea" style="border:2px dashed #cbd5e1;border-radius:10px;min-height:120px;display:flex;align-items:center;justify-content:center;background:#f8fafc;overflow:auto;position:relative" onclick="eCapAreaClick()" ondragover="event.preventDefault()" ondrop="eHandleDrop(event)">
+      <div id="eCph" style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;pointer-events:none">📋 Ctrl+V วางรูป หรือใช้ปุ่มด้านล่าง</div>
+      <div style="position:relative;display:inline-block">
+        <canvas id="ecv" style="display:none;max-width:100%"></canvas>
+        <div id="eCvResizeHandle" style="display:none;position:absolute;right:-4px;bottom:-4px;width:14px;height:14px;background:#3b82f6;border-radius:3px;cursor:nwse-resize;z-index:5" onmousedown="eCvResizeStart(event)"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+      <button class="btn bs" style="font-size:11px;padding:5px 10px" onclick="eCapScreen()">📷 Capture Screen</button>
+      <label class="btn bs" style="font-size:11px;padding:5px 10px;cursor:pointer">📁 Upload<input type="file" accept="image/*" style="display:none" onchange="eHandleUpload(event)"></label>
+      <button class="btn bs" style="font-size:11px;padding:5px 10px;background:#eff6ff;color:#2563eb;border-color:#bfdbfe" onclick="eStartBlankCollage()">🖼 Canvas เปล่า</button>
+      ${b.screenshot?`<button class="btn bs" style="font-size:11px;padding:5px 10px;background:#f0fdf4;color:#16a34a;border-color:#bbf7d0" onclick="eLoadExisting('${esc(b.screenshot)}')">📌 โหลดรูปเดิม</button>`:''}
+      <button class="btn bs" id="eDlBtn" style="display:none;font-size:11px;padding:5px 10px" onclick="eDownload()">💾</button>
+      <button class="btn bs" id="eCpBtn" style="display:none;font-size:11px;padding:5px 10px" onclick="eCopy()">📋</button>
+    </div>
+  </div>
+  <!-- RIGHT: FORM -->
+  <div>
+    <div class="trans-bar">
+      <select id="eTransFrom" class="fc" style="font-size:11px;padding:4px 6px">
+        <option value="vi">🇻🇳 Vietnamese</option>
+        <option value="th">🇹🇭 Thai</option>
+        <option value="lo">🇱🇦 Lao</option>
+        <option value="zh">🇨🇳 Chinese</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+      <span style="color:#64748b;font-size:14px;padding:0 2px">→</span>
+      <select id="eTransLang" class="fc" style="font-size:11px;padding:4px 6px">
+        <option value="en">🇬🇧 English</option>
+        <option value="th">🇹🇭 Thai</option>
+        <option value="vi">🇻🇳 Vietnamese</option>
+        <option value="lo">🇱🇦 Lao</option>
+        <option value="zh">🇨🇳 Chinese</option>
+      </select>
+      <div style="display:flex;gap:5px">
+        <button id="eTransBtn" class="btn bp" style="padding:5px 10px;font-size:11px;background:linear-gradient(135deg,#1e40af,#7c3aed)" onclick="translateEditForm()">⟳ Translate</button>
+        <button id="eTransRestoreBtn" class="btn bs" style="padding:5px 10px;font-size:11px;display:none" onclick="restoreEditOrig()">↩</button>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Bug ID</label><input class="fc" readonly value="${esc(b.id||'—')}" style="background:#f8fafc;color:#6b7280;font-family:monospace;cursor:default;font-size:12px"></div>
+    <div class="fg"><label class="fl">Title *</label><input class="fc" id="eTit" value="${esc(b.title)}"></div>
+    <div class="fg"><label class="fl">Severity</label><div class="sr" style="display:flex;gap:6px;flex-wrap:wrap">${sevPills}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label class="fl">Environment</label><select class="fc" id="eEnv">${envOpts}</select></div>
+      <div class="fg"><label class="fl">Module</label><select class="fc" id="eMod">${modOpts}</select></div>
+    </div>
+    <div class="fg"><label class="fl">Feature</label><input class="fc" id="eFeat" value="${esc(b.feature||'')}"></div>
+    <div class="fg"><label class="fl">Description *</label><textarea class="fc" id="eDesc" rows="4" style="min-height:100px">${esc(b.description||'')}</textarea></div>
+    <div class="fg"><label class="fl">Steps to Reproduce</label><textarea class="fc" id="eSteps" rows="3" style="min-height:80px">${esc(b.steps||'')}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn bp" style="flex:1;padding:11px" onclick="saveEditBug()">💾 บันทึก</button>
+      <button class="btn bs" style="padding:11px 20px" onclick="toggleEditMode()">✕ ยกเลิก</button>
+    </div>
+  </div>
+  </div>`;
+  document.getElementById('bmEditBtn').style.display='none';
+  ecv=document.getElementById('ecv'); ecx=ecv?.getContext('2d');
+  eTool='rect'; eColor='#ef4444'; eGotCap=false; eHist=[]; eHi=-1;
+  eCollageMode=false; eCollageItems=[];
+  document.addEventListener('paste',eOnPaste);
+  // auto-load existing screenshot
+  if(b.screenshot) setTimeout(()=>eLoadExisting(b.screenshot), 50);
+}
+
+async function saveEditBug(){
+  const b=_viewBug;
+  const title=document.getElementById('eTit').value.trim();
+  const desc=document.getElementById('eDesc').value.trim();
+  if(!title||!desc){toast('Title/Description ห้ามว่าง','err');return;}
+  let imageUrl=b.screenshot||'';
+  if(eGotCap){
+    try{
+      const base64=ecv.toDataURL('image/jpeg',.7).replace(/^data:image\/\w+;base64,/,'');
+      const fd=new FormData(); fd.append('key',IMGBB_KEY); fd.append('image',base64);
+      const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
+      const j=await r.json(); if(j.success) imageUrl=j.data.url;
+    }catch(e){}
+  }
+  const j=await api('update_bug',{projectId:currentProject?.id,id:b.id,title,severity:window.eSev,module:document.getElementById('eMod').value,feature:document.getElementById('eFeat').value.trim(),environment:document.getElementById('eEnv').value,description:desc,steps:document.getElementById('eSteps').value.trim(),imageUrl});
+  if(j.success||j.ok){
+    Object.assign(b,{title,severity:window.eSev,module:document.getElementById('eMod').value,feature:document.getElementById('eFeat').value.trim(),environment:document.getElementById('eEnv').value,description:desc,steps:document.getElementById('eSteps').value.trim(),screenshot:imageUrl});
+    toast('บันทึกแล้ว ✓','ok'); toggleEditMode(); renderStats(); render();
+  } else toast('บันทึกไม่สำเร็จ','err');
+}
+
+async function updateStatus(id,status){
+  const j=await api('update_status',{projectId:currentProject?.id,id,status});
+  if(j.success||j.ok){ const b=bugs.find(x=>x.id===id); if(b)b.status=status; if(_viewBug?.id===id)_viewBug.status=status; renderStats();render();toast('อัปเดตแล้ว','ok'); }
+  else toast('อัปเดตไม่สำเร็จ','err');
+}
+
+async function deleteBug(id){
+  if(!confirm('ลบ bug นี้?'))return;
+  const j=await api('delete_bug',{projectId:currentProject?.id,id});
+  if(j.success||j.ok){ bugs=bugs.filter(b=>b.id!==id); closeBug(); renderStats(); render(); toast('ลบแล้ว','ok'); }
+  else toast('ลบไม่สำเร็จ','err');
+}
+
+// TRANSLATE
+async function smartTranslate(text,sl,tl){
+  if(!text.trim())return text;
+  const tokens=[];
+  const safe=text.replace(/->|<-/g,m=>{tokens.push(m);return`[T${tokens.length-1}]`;}).replace(/\b[A-Z]{2,}[0-9]*\b/g,m=>{tokens.push(m);return`[T${tokens.length-1}]`;});
+  const r=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(safe)}`);
+  const j=await r.json();
+  let out=j[0].map(s=>s[0]).join('');
+  return out.replace(/\[\s*T\s*(\d+)\s*\]/g,(_,i)=>tokens[+i]||'');
+}
+async function translateForm(){
+  const sl=document.getElementById('transFrom').value,tl=document.getElementById('transLang').value;
+  const fields=[{id:'bTitle',key:'title'},{id:'bFeat',key:'feat'},{id:'bDesc',key:'desc'},{id:'bSteps',key:'steps'}];
+  const btn=document.getElementById('transBtn'); btn.textContent='...'; btn.disabled=true;
+  _origTexts={}; fields.forEach(f=>{_origTexts[f.key]=document.getElementById(f.id).value;});
+  try{ for(const f of fields){ const t=document.getElementById(f.id).value.trim(); if(t) document.getElementById(f.id).value=await smartTranslate(t,sl,tl); } document.getElementById('transRestoreBtn').style.display=''; toast('แปลแล้ว ✓','ok'); }
+  catch(e){toast('แปลไม่สำเร็จ','err');}
+  btn.textContent='⟳ Translate'; btn.disabled=false;
+}
+function restoreOrig(){
+  if(!_origTexts)return;
+  [{id:'bTitle',key:'title'},{id:'bFeat',key:'feat'},{id:'bDesc',key:'desc'},{id:'bSteps',key:'steps'}].forEach(f=>{document.getElementById(f.id).value=_origTexts[f.key]||'';});
+  document.getElementById('transRestoreBtn').style.display='none';
+  toast('คืนค่าเดิมแล้ว','info');
+}
+let _eOrigTexts=null;
+async function translateEditForm(){
+  const sl=document.getElementById('eTransFrom').value,tl=document.getElementById('eTransLang').value;
+  const fields=[{id:'eTit',key:'title'},{id:'eFeat',key:'feat'},{id:'eDesc',key:'desc'},{id:'eSteps',key:'steps'}];
+  const btn=document.getElementById('eTransBtn'); btn.textContent='...'; btn.disabled=true;
+  _eOrigTexts={}; fields.forEach(f=>{_eOrigTexts[f.key]=document.getElementById(f.id)?.value||'';});
+  try{ for(const f of fields){ const el=document.getElementById(f.id); if(el&&el.value.trim()) el.value=await smartTranslate(el.value,sl,tl); } document.getElementById('eTransRestoreBtn').style.display=''; toast('แปลแล้ว ✓','ok'); }
+  catch(e){toast('แปลไม่สำเร็จ','err');}
+  btn.textContent='⟳ Translate'; btn.disabled=false;
+}
+function restoreEditOrig(){
+  if(!_eOrigTexts)return;
+  [{id:'eTit',key:'title'},{id:'eFeat',key:'feat'},{id:'eDesc',key:'desc'},{id:'eSteps',key:'steps'}].forEach(f=>{const el=document.getElementById(f.id); if(el) el.value=_eOrigTexts[f.key]||'';});
+  document.getElementById('eTransRestoreBtn').style.display='none';
+  toast('คืนค่าเดิมแล้ว','info');
+}
+
+// CANVAS MAIN
+async function capScreen(){
+  try{
+    const stream=await navigator.mediaDevices.getDisplayMedia({preferCurrentTab:true});
+    const video=document.createElement('video'); video.srcObject=stream; await video.play();
+    cv.width=video.videoWidth; cv.height=video.videoHeight;
+    cx.drawImage(video,0,0); stream.getTracks().forEach(t=>t.stop()); video.remove();
+    if(gotCap) canvasToImg(img=>addToCollage(img)); else onImgLoad();
+  }catch(e){toast('Capture ไม่สำเร็จ','err');}
+}
+function canvasToImg(cb){ const i=new Image(); i.onload=()=>cb(i); i.src=cv.toDataURL(); }
+function loadImgToCanvas(src){ const i=new Image(); i.onload=()=>{ if(gotCap) addToCollage(i); else { cv.width=i.width; cv.height=i.height; cx.drawImage(i,0,0); onImgLoad(); } }; i.src=src; }
+function handleUpload(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>loadImgToCanvas(ev.target.result); r.readAsDataURL(f); e.target.value=''; }
+function handleDrop(e){ const f=e.dataTransfer.files[0]; if(!f||!f.type.startsWith('image/'))return; const r=new FileReader(); r.onload=ev=>loadImgToCanvas(ev.target.result); r.readAsDataURL(f); }
+function onPaste(e){ for(const it of (e.clipboardData?.items||[])){ if(it.type.startsWith('image/')){ const r=new FileReader(); r.onload=ev=>loadImgToCanvas(ev.target.result); r.readAsDataURL(it.getAsFile()); e.preventDefault(); return; } } }
+document.addEventListener('paste',onPaste);
+
+function onImgLoad(){
+  gotCap=true;
+  cv.style.display='block';
+  document.getElementById('cph').style.display='none';
+  document.getElementById('capArea').classList.add('has');
+  document.getElementById('capArea').style.cursor='crosshair';
+  document.getElementById('tb').classList.add('on');
+  document.getElementById('clrBtn').style.display='';
+  const ul0=document.getElementById('unlockBtn');
+  if(ul0){ ul0.textContent='🖼 แก้รูป'; ul0.style.display=''; }
+  ['dlBtn','cpBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+  hist=[]; hi=-1; saveH();
+  cv.onmousedown=startD; cv.onmousemove=moveD; cv.onmouseup=endD; cv.onmouseleave=endD;
+}
+
+function showCapBtns(show){
+  ['dlBtn','cpBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=show?'':'none';});
+  const clr=document.getElementById('clrBtn'); if(clr) clr.style.display=show?'':'none';
+  const ul=document.getElementById('unlockBtn'); if(ul) ul.style.display=show?'':'none';
+}
+function onImgLoad(){ gotCap=true; cv.style.display='block'; document.getElementById('cph').style.display='none'; document.getElementById('capArea').classList.add('has'); document.getElementById('capArea').style.cursor='default'; document.getElementById('tb').classList.add('on'); showCapBtns(true); saveH(); cv.onmousedown=startD; cv.onmousemove=moveD; cv.onmouseup=endD; cv.onmouseleave=endD; cv.ontouchstart=e=>{e.preventDefault();startD(e.touches[0]);}; cv.ontouchmove=e=>{e.preventDefault();moveD(e.touches[0]);}; cv.ontouchend=e=>{e.preventDefault();endD();}; }
+function clearCap(){ gotCap=false; collageMode=false; collageItems=[]; cv.style.display='none'; hist=[]; hi=-1; cx.clearRect(0,0,cv.width,cv.height); document.getElementById('cph').style.display=''; document.getElementById('capArea').classList.remove('has'); document.getElementById('capArea').style.cursor='pointer'; document.getElementById('tb').classList.remove('on'); document.getElementById('unlockBtn').style.display='none'; showCapBtns(false); }
+
+function downloadCap(){
+  if(!gotCap){ toast('ยังไม่มีรูป','err'); return; }
+  const a=document.createElement('a');
+  a.href=cv.toDataURL('image/png');
+  a.download='bug-screenshot-'+Date.now()+'.png';
+  a.click();
+}
+
+async function copyCap(){
+  if(!gotCap){ toast('ยังไม่มีรูป','err'); return; }
+  try{
+    cv.toBlob(async blob=>{
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      toast('📋 Copy รูปแล้ว — Ctrl+V วางได้เลย','ok');
+    },'image/png');
+  }catch(e){
+    // fallback: open image in new tab
+    const win=window.open(); win.document.write('<img src="'+cv.toDataURL()+'" style="max-width:100%">');
+    toast('เปิดรูปในแท็บใหม่แล้ว — คลิกขวา → Copy Image','ok');
+  }
+}
+function handleCapClick(){ if(!gotCap) capScreen(); }
+
+function toggleCollage(){
+  if(collageMode){ lockCollage(); return; }
+  // Snapshot current canvas synchronously before entering collage
+  let snapCanvas = null;
+  if(!collageItems.length && gotCap){
+    snapCanvas = snapCv();
+  }
+  collageMode=true; drawing=false;
+  const ul=document.getElementById('unlockBtn');
+  if(ul){ ul.textContent='🎨 วาด'; ul.style.display=''; }
+  cv.onmousedown=colDown; cv.onmousemove=colMove; cv.onmouseup=colUp; cv.onmouseleave=colUp;
+  document.getElementById('cvResizeHandle').style.display='block';
+  if(snapCanvas){
+    const sc=Math.min(1,(cv.width*0.9)/snapCanvas.width);
+    const w=Math.round(snapCanvas.width*sc),h=Math.round(snapCanvas.height*sc);
+    collageItems.push({img:snapCanvas,x:20,y:20,w,h});
+  }
+  redrawCollage();
+}
+
+function startBlankCollage(){
+  collageMode=true; collageItems=[];
+  cv.width=900; cv.height=500;
+  cx.fillStyle='#f1f5f9'; cx.fillRect(0,0,cv.width,cv.height);
+  cv.style.display='block'; document.getElementById('cph').style.display='none';
+  document.getElementById('capArea').classList.add('has');
+  document.getElementById('cvResizeHandle').style.display='block';
+  document.getElementById('clrBtn').style.display='';
+  const ul=document.getElementById('unlockBtn');
+  if(ul){ ul.textContent='🎨 วาด'; ul.style.display=''; }
+  gotCap=true; hist=[]; hi=-1;
+  cv.onmousedown=colDown; cv.onmousemove=colMove; cv.onmouseup=colUp; cv.onmouseleave=colUp;
+  document.getElementById('tb').classList.add('on');
+  redrawCollage();
+}
+
+function startCollage(){ toggleCollage(); }
+function cvResizeStart(e){ e.preventDefault(); e.stopPropagation(); const sX=e.clientX,sY=e.clientY,sW=cv.width,sH=cv.height; const snap=document.createElement('canvas'); snap.width=sW; snap.height=sH; snap.getContext('2d').drawImage(cv,0,0); function onMove(ev){ const nw=Math.max(300,sW+(ev.clientX-sX)),nh=Math.max(200,sH+(ev.clientY-sY)); cv.width=nw; cv.height=nh; cx.fillStyle='#f1f5f9'; cx.fillRect(0,0,nw,nh); cx.drawImage(snap,0,0); redrawCollage(); } function onUp(){ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); } document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp); }
+function addToCollage(img){ const maxW=Math.min(img.width,cv.width*0.55),sc=maxW/img.width,w=Math.round(img.width*sc),h=Math.round(img.height*sc),off=(collageItems.length%3)*30; collageItems.push({img,x:20+off,y:20+off,w,h}); redrawCollage(); }
+function redrawCollage(){ cx.fillStyle='#f1f5f9'; cx.fillRect(0,0,cv.width,cv.height); cx.strokeStyle='#e2e8f0'; cx.lineWidth=1; for(let x=0;x<cv.width;x+=60){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,cv.height);cx.stroke();} for(let y=0;y<cv.height;y+=60){cx.beginPath();cx.moveTo(0,y);cx.lineTo(cv.width,y);cx.stroke();} if(!collageItems.length){cx.fillStyle='#94a3b8';cx.font='bold 16px sans-serif';cx.textAlign='center';cx.fillText('Paste รูป (Ctrl+V) หรือ Upload',cv.width/2,cv.height/2);cx.textAlign='left';return;} collageItems.forEach((it,i)=>{ cx.shadowColor='rgba(0,0,0,.15)';cx.shadowBlur=8;cx.shadowOffsetX=2;cx.shadowOffsetY=2; cx.drawImage(it.img,it.x,it.y,it.w,it.h); cx.shadowColor='transparent';cx.shadowBlur=0;cx.shadowOffsetX=0;cx.shadowOffsetY=0; cx.strokeStyle=colDragIdx===i?'#3b82f6':'#cbd5e1';cx.lineWidth=colDragIdx===i?3:1.5;cx.strokeRect(it.x,it.y,it.w,it.h); cx.fillStyle='rgba(30,64,175,.75)';cx.fillRect(it.x,it.y,32,18);cx.fillStyle='#fff';cx.font='bold 11px sans-serif';cx.fillText('#'+(i+1),it.x+4,it.y+13); const dx=it.x+it.w-10,dy=it.y+10; cx.fillStyle='#ef4444';cx.beginPath();cx.arc(dx,dy,10,0,Math.PI*2);cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.beginPath();cx.moveTo(dx-5,dy-5);cx.lineTo(dx+5,dy+5);cx.stroke();cx.beginPath();cx.moveTo(dx+5,dy-5);cx.lineTo(dx-5,dy+5);cx.stroke(); cx.fillStyle='#3b82f6';cx.beginPath();cx.moveTo(it.x+it.w-16,it.y+it.h);cx.lineTo(it.x+it.w,it.y+it.h);cx.lineTo(it.x+it.w,it.y+it.h-16);cx.closePath();cx.fill(); }); }
+function colDown(e){ const p=gp(e); for(let i=collageItems.length-1;i>=0;i--){ const it=collageItems[i],dx=it.x+it.w-10,dy=it.y+10; if(Math.hypot(p.x-dx,p.y-dy)<=12){collageItems.splice(i,1);redrawCollage();return;} if(p.x>=it.x+it.w-RHANDLE&&p.x<=it.x+it.w+RHANDLE&&p.y>=it.y+it.h-RHANDLE&&p.y<=it.y+it.h+RHANDLE){colResizeIdx=i;colResizeOX=p.x;colResizeOY=p.y;colResizeW=it.w;colResizeH=it.h;colDragIdx=-1;return;} if(p.x>=it.x&&p.x<=it.x+it.w&&p.y>=it.y&&p.y<=it.y+it.h){colDragIdx=i;colDragOX=p.x-it.x;colDragOY=p.y-it.y;collageItems.push(collageItems.splice(i,1)[0]);colDragIdx=collageItems.length-1;colResizeIdx=-1;return;} } colDragIdx=-1;colResizeIdx=-1; }
+function colMove(e){ const p=gp(e); if(colResizeIdx>=0){const it=collageItems[colResizeIdx];it.w=Math.max(60,colResizeW+(p.x-colResizeOX));it.h=Math.max(40,colResizeH+(p.y-colResizeOY));redrawCollage();return;} if(colDragIdx>=0){collageItems[colDragIdx].x=p.x-colDragOX;collageItems[colDragIdx].y=p.y-colDragOY;redrawCollage();} let onH=false; for(const it of collageItems){if(p.x>=it.x+it.w-RHANDLE&&p.x<=it.x+it.w+RHANDLE&&p.y>=it.y+it.h-RHANDLE&&p.y<=it.y+it.h+RHANDLE){onH=true;break;}} cv.style.cursor=onH?'nwse-resize':'default'; }
+function colUp(){ colDragIdx=-1; colResizeIdx=-1; }
+function lockCollage(){
+  collageMode=false; hist=[]; hi=-1; saveH();
+  cv.onmousedown=startD; cv.onmousemove=moveD; cv.onmouseup=endD; cv.onmouseleave=endD;
+  document.getElementById('cvResizeHandle').style.display='none';
+  const ul=document.getElementById('unlockBtn');
+  if(ul){ ul.textContent='🖼 แก้รูป'; ul.style.display=''; }
+}
+function unlockCollage(){
+  if(collageMode){ lockCollage(); return; }
+  if(!collageItems.length && gotCap){
+    // ยังไม่เคยเข้า collage — snapshot canvas ที่มี marks เป็น item แรก
+    const snap=snapCv();
+    const sc=Math.min(1,(cv.width*0.85)/snap.width);
+    const w=Math.round(snap.width*sc),h=Math.round(snap.height*sc);
+    collageItems=[{img:snap,x:20,y:20,w,h}];
+  } else if(collageItems.length){
+    // bake annotation ที่วาดทับลงใน image แต่ละชิ้น (เหมือน backup)
+    collageItems=collageItems.map(it=>{
+      const tmp=document.createElement('canvas');
+      tmp.width=it.w; tmp.height=it.h;
+      tmp.getContext('2d').drawImage(cv,it.x,it.y,it.w,it.h,0,0,it.w,it.h);
+      return{...it,img:tmp};
+    });
+  }
+  collageMode=true; hist=[]; hi=-1;
+  cv.onmousedown=colDown; cv.onmousemove=colMove; cv.onmouseup=colUp; cv.onmouseleave=colUp;
+  document.getElementById('cvResizeHandle').style.display='block';
+  const ul=document.getElementById('unlockBtn');
+  if(ul){ ul.textContent='🎨 วาด'; ul.style.display=''; }
+  redrawCollage();
+  toast('ลากย้ายรูปได้เลยค่ะ','ok');
+}
+
+function gp(e){ const r=cv.getBoundingClientRect(); return{x:(e.clientX-r.left)*cv.width/r.width,y:(e.clientY-r.top)*cv.height/r.height}; }
+function startD(e){ if(tool==='text'){addTxt(e);return;} drawing=true; const p=gp(e); sx=p.x; sy=p.y; if(tool==='pen') penPts=[{x:sx,y:sy}]; }
+function snapCv(){ const t=document.createElement('canvas'); t.width=cv.width; t.height=cv.height; t.getContext('2d').drawImage(cv,0,0); return t; }
+function saveH(){ hist=hist.slice(0,hi+1); hist.push(snapCv()); if(hist.length>30)hist.shift(); hi=hist.length-1; }
+function moveD(e){ if(!drawing)return; const p=gp(e); const snap=hist[hi]; if(!snap)return; cx.clearRect(0,0,cv.width,cv.height); cx.drawImage(snap,0,0); dPrev(p.x,p.y); }
+function dPrev(px,py){ cx.strokeStyle=color;cx.fillStyle=color;cx.lineWidth=bsz;cx.lineCap='round';cx.lineJoin='round'; if(tool==='rect')cx.strokeRect(sx,sy,px-sx,py-sy); else if(tool==='arrow')dArrow(sx,sy,px,py); else if(tool==='pen'){penPts.push({x:px,y:py});cx.beginPath();penPts.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y));cx.stroke();} else if(tool==='blur'){cx.fillStyle='rgba(20,20,20,.75)';cx.fillRect(sx,sy,px-sx,py-sy);} }
+function endD(){ if(!drawing)return; drawing=false; saveH(); }
+function dArrow(x1,y1,x2,y2){ const a=Math.atan2(y2-y1,x2-x1),hl=14; cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke(); cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x2-hl*Math.cos(a-Math.PI/7),y2-hl*Math.sin(a-Math.PI/7));cx.lineTo(x2-hl*Math.cos(a+Math.PI/7),y2-hl*Math.sin(a+Math.PI/7));cx.closePath();cx.fill(); }
+function addTxt(e){ const t=prompt('ข้อความ:'); if(!t)return; const p=gp(e); cx.font=`bold ${12+bsz*2}px sans-serif`; cx.strokeStyle='#fff';cx.lineWidth=2;cx.strokeText(t,p.x,p.y); cx.fillStyle=color;cx.fillText(t,p.x,p.y); saveH(); }
+function undo(){ if(hi>0){hi--;cx.clearRect(0,0,cv.width,cv.height);cx.drawImage(hist[hi],0,0);} }
+function redo(){ if(hi<hist.length-1){hi++;cx.clearRect(0,0,cv.width,cv.height);cx.drawImage(hist[hi],0,0);} }
+function setTool(t){ tool=t; document.querySelectorAll('.tbtn[id^="t-"]').forEach(b=>b.classList.remove('on')); document.getElementById('t-'+t)?.classList.add('on'); cv.style.cursor=t==='text'?'text':'crosshair'; if(collageMode)lockCollage(); }
+function setColor(c,el){ color=c; document.querySelectorAll('.col').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
+function setSev(s,el){ sev=s; document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); }
+
+// EDIT CANVAS — full feature parity with submit form
+function eSnapCv(){ const t=document.createElement('canvas'); t.width=ecv.width; t.height=ecv.height; t.getContext('2d').drawImage(ecv,0,0); return t; }
+function eSaveH(){ eHist=eHist.slice(0,eHi+1); eHist.push(eSnapCv()); if(eHist.length>30)eHist.shift(); eHi=eHist.length-1; }
+function eUndo(){ if(eHi>0){eHi--;ecx.clearRect(0,0,ecv.width,ecv.height);ecx.drawImage(eHist[eHi],0,0);} }
+function eRedo(){ if(eHi<eHist.length-1){eHi++;ecx.clearRect(0,0,ecv.width,ecv.height);ecx.drawImage(eHist[eHi],0,0);} }
+function egp(e){ const r=ecv.getBoundingClientRect(); return{x:(e.clientX-r.left)*ecv.width/r.width,y:(e.clientY-r.top)*ecv.height/r.height}; }
+function eStartD(e){ if(eTool==='text'){eAddTxt(e);return;} eDrawing=true; const p=egp(e); eSx=p.x; eSy=p.y; if(eTool==='pen') ePenPts=[{x:eSx,y:eSy}]; }
+function eMoveD(e){
+  if(!eDrawing)return; const p=egp(e); const snap=eHist[eHi]; if(!snap)return;
+  ecx.clearRect(0,0,ecv.width,ecv.height); ecx.drawImage(snap,0,0);
+  ecx.strokeStyle=eColor; ecx.fillStyle=eColor; ecx.lineWidth=eBsz; ecx.lineCap='round';
+  if(eTool==='rect'){ ecx.strokeRect(eSx,eSy,p.x-eSx,p.y-eSy); }
+  else if(eTool==='arrow'){ ecx.beginPath();ecx.moveTo(eSx,eSy);ecx.lineTo(p.x,p.y);ecx.stroke(); const a=Math.atan2(p.y-eSy,p.x-eSx),hs=Math.max(8,eBsz*3); ecx.beginPath();ecx.moveTo(p.x,p.y);ecx.lineTo(p.x-hs*Math.cos(a-0.4),p.y-hs*Math.sin(a-0.4));ecx.lineTo(p.x-hs*Math.cos(a+0.4),p.y-hs*Math.sin(a+0.4));ecx.closePath();ecx.fill(); }
+  else if(eTool==='pen'){ ePenPts.push({x:p.x,y:p.y}); ecx.beginPath(); ePenPts.forEach((pt,j)=>j?ecx.lineTo(pt.x,pt.y):ecx.moveTo(pt.x,pt.y)); ecx.stroke(); }
+  else if(eTool==='blur'){ const rx=Math.min(eSx,p.x),ry=Math.min(eSy,p.y),rw=Math.abs(p.x-eSx),rh=Math.abs(p.y-eSy); if(rw>2&&rh>2){ecx.save();ecx.filter=`blur(${eBsz*3}px)`;ecx.drawImage(snap,rx,ry,rw,rh,rx,ry,rw,rh);ecx.restore();} }
+}
+function eEndD(){ if(!eDrawing)return; eDrawing=false; eSaveH(); }
+function eAddTxt(e){ const p=egp(e); const txt=prompt('ข้อความ:'); if(!txt)return; ecx.font=`bold ${eBsz*8+12}px sans-serif`; ecx.fillStyle=eColor; ecx.fillText(txt,p.x,p.y); eSaveH(); }
+
+function eOnImgLoad(){
+  eGotCap=true; eCollageMode=false; ecv.style.display='block';
+  document.getElementById('eCph').style.display='none';
+  const tb=document.getElementById('eTb'); if(tb) tb.style.display='flex';
+  document.getElementById('eCapArea').style.cursor='crosshair';
+  const ulb=document.getElementById('eUnlockBtn'); if(ulb){ulb.textContent='🖼 แก้รูป';ulb.style.display='';}
+  const clr=document.getElementById('eClrBtn'); if(clr) clr.style.display='';
+  ['eDlBtn','eCpBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+  eHist=[]; eHi=-1; eSaveH();
+  ecv.onmousedown=eStartD; ecv.onmousemove=eMoveD; ecv.onmouseup=eEndD; ecv.onmouseleave=eEndD;
+}
+
+async function eCapScreen(){ try{ const stream=await navigator.mediaDevices.getDisplayMedia({preferCurrentTab:true}); const video=document.createElement('video'); video.srcObject=stream; await video.play(); ecv.width=video.videoWidth; ecv.height=video.videoHeight; ecx.drawImage(video,0,0); stream.getTracks().forEach(t=>t.stop()); video.remove(); eOnImgLoad(); }catch(e){toast('Capture ไม่สำเร็จ','err');} }
+function eHandleUpload(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{const i=new Image();i.onload=()=>{ if(eCollageMode){eAddToCollage(i);}else{ecv.width=i.width;ecv.height=i.height;ecx.drawImage(i,0,0);eOnImgLoad();} };i.src=ev.target.result;}; r.readAsDataURL(f); e.target.value=''; }
+function eOnPaste(e){ for(const it of (e.clipboardData?.items||[])){ if(it.type.startsWith('image/')){ const r=new FileReader(); r.onload=ev=>{const i=new Image();i.onload=()=>{ if(eCollageMode){eAddToCollage(i);}else{ecv.width=i.width;ecv.height=i.height;ecx.drawImage(i,0,0);eOnImgLoad();} };i.src=ev.target.result;}; r.readAsDataURL(it.getAsFile()); e.preventDefault(); return; } } }
+function eHandleDrop(ev){ ev.preventDefault(); const f=ev.dataTransfer.files[0]; if(!f||!f.type.startsWith('image/'))return; const r=new FileReader(); r.onload=e=>{const i=new Image();i.onload=()=>{if(eCollageMode){eAddToCollage(i);}else{ecv.width=i.width;ecv.height=i.height;ecx.drawImage(i,0,0);eOnImgLoad();}};i.src=e.target.result;}; r.readAsDataURL(f); }
+function eCapAreaClick(){ if(!eGotCap&&!eCollageMode) eCapScreen(); }
+function eLoadExisting(url){ const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>{ ecv.width=img.width; ecv.height=img.height; ecx.drawImage(img,0,0); eOnImgLoad(); }; img.onerror=()=>{ toast('โหลดรูปเดิมไม่ได้ ลอง Upload แทน','err'); }; img.src=url; }
+function eClearCap(){ if(!confirm('ล้างรูปทั้งหมด?')) return; eGotCap=false; eCollageMode=false; eCollageItems=[]; ecv.style.display='none'; eHist=[]; eHi=-1; ecx.clearRect(0,0,ecv.width,ecv.height); document.getElementById('eCph').style.display='flex'; const tb=document.getElementById('eTb'); if(tb) tb.style.display='none'; const ulb=document.getElementById('eUnlockBtn'); if(ulb) ulb.style.display='none'; const clr=document.getElementById('eClrBtn'); if(clr) clr.style.display='none'; ['eDlBtn','eCpBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';}); }
+function eDownload(){ const a=document.createElement('a'); a.href=ecv.toDataURL('image/png'); a.download='screenshot.png'; a.click(); }
+async function eCopy(){ try{ ecv.toBlob(b=>navigator.clipboard.write([new ClipboardItem({'image/png':b})])); toast('คัดลอกแล้ว','ok'); }catch(e){ toast('ไม่รองรับ','err'); } }
+function eSetTool(t){ eTool=t; document.querySelectorAll('.tbtn[id^="et-"]').forEach(b=>b.classList.remove('on')); const el=document.getElementById('et-'+t); if(el) el.classList.add('on'); }
+function eSetColor(c,el){ eColor=c; document.querySelectorAll('#eTb .ecol').forEach(d=>d.style.outline='none'); if(el) el.style.outline='3px solid #1e3a5f'; }
+
+// Edit collage
+function eStartBlankCollage(){
+  eCollageMode=true; eCollageItems=[];
+  const area=document.getElementById('eCapArea');
+  const w=Math.max((area?.clientWidth||620)-20,600);
+  ecv.width=w; ecv.height=Math.round(w*0.65);
+  eRedrawCollage();
+  eGotCap=true; ecv.style.display='block';
+  document.getElementById('eCph').style.display='none';
+  const tb=document.getElementById('eTb'); if(tb) tb.style.display='flex';
+  const clr=document.getElementById('eClrBtn'); if(clr) clr.style.display='';
+  document.getElementById('eCvResizeHandle').style.display='block';
+  ecv.onmousedown=eColDown; ecv.onmousemove=eColMove; ecv.onmouseup=eColUp; ecv.onmouseleave=eColUp;
+  const ul=document.getElementById('eUnlockBtn'); if(ul){ul.textContent='🎨 วาด';ul.style.display='';}
+  toast('Paste (Ctrl+V) หรือ Upload รูปได้เลยค่ะ','ok');
+}
+function eUnlockCollage(){
+  if(eCollageMode){ eLockCollage(); return; }
+  if(!eCollageItems.length&&eGotCap){
+    const snap=eSnapCv(); const sc=Math.min(1,(ecv.width*0.85)/snap.width); const w=Math.round(snap.width*sc),h=Math.round(snap.height*sc);
+    eCollageItems=[{img:snap,x:20,y:20,w,h}];
+  } else if(eCollageItems.length){
+    eCollageItems=eCollageItems.map(it=>{ const tmp=document.createElement('canvas'); tmp.width=it.w; tmp.height=it.h; tmp.getContext('2d').drawImage(ecv,it.x,it.y,it.w,it.h,0,0,it.w,it.h); return{...it,img:tmp}; });
+  }
+  eCollageMode=true; eHist=[]; eHi=-1;
+  ecv.onmousedown=eColDown; ecv.onmousemove=eColMove; ecv.onmouseup=eColUp; ecv.onmouseleave=eColUp;
+  document.getElementById('eCvResizeHandle').style.display='block';
+  const ul=document.getElementById('eUnlockBtn'); if(ul){ul.textContent='🎨 วาด';ul.style.display='';}
+  eRedrawCollage(); toast('ลากย้ายรูปได้เลยค่ะ','ok');
+}
+function eLockCollage(){
+  eCollageMode=false; eHist=[]; eHi=-1; eSaveH();
+  ecv.onmousedown=eStartD; ecv.onmousemove=eMoveD; ecv.onmouseup=eEndD; ecv.onmouseleave=eEndD;
+  document.getElementById('eCvResizeHandle').style.display='none';
+  const ul=document.getElementById('eUnlockBtn'); if(ul){ul.textContent='🖼 แก้รูป';ul.style.display='';}
+}
+function eRedrawCollage(){ ecx.fillStyle='#f1f5f9';ecx.fillRect(0,0,ecv.width,ecv.height);ecx.strokeStyle='#e2e8f0';ecx.lineWidth=1; for(let x=0;x<ecv.width;x+=60){ecx.beginPath();ecx.moveTo(x,0);ecx.lineTo(x,ecv.height);ecx.stroke();} for(let y=0;y<ecv.height;y+=60){ecx.beginPath();ecx.moveTo(0,y);ecx.lineTo(ecv.width,y);ecx.stroke();} if(!eCollageItems.length){ecx.fillStyle='#94a3b8';ecx.font='bold 14px sans-serif';ecx.textAlign='center';ecx.fillText('Paste รูป (Ctrl+V) หรือ Upload',ecv.width/2,ecv.height/2);ecx.textAlign='left';return;} eCollageItems.forEach((it,i)=>{ ecx.shadowColor='rgba(0,0,0,.15)';ecx.shadowBlur=8;ecx.shadowOffsetX=2;ecx.shadowOffsetY=2; ecx.drawImage(it.img,it.x,it.y,it.w,it.h); ecx.shadowColor='transparent';ecx.shadowBlur=0;ecx.shadowOffsetX=0;ecx.shadowOffsetY=0; ecx.strokeStyle=eColDragIdx===i?'#3b82f6':'#cbd5e1';ecx.lineWidth=eColDragIdx===i?3:1.5;ecx.strokeRect(it.x,it.y,it.w,it.h); const dx=it.x+it.w-10,dy=it.y+10; ecx.fillStyle='rgba(30,64,175,.75)';ecx.fillRect(it.x,it.y,32,18);ecx.fillStyle='#fff';ecx.font='bold 11px sans-serif';ecx.fillText('#'+(i+1),it.x+4,it.y+13); ecx.fillStyle='#ef4444';ecx.beginPath();ecx.arc(dx,dy,10,0,Math.PI*2);ecx.fill();ecx.strokeStyle='#fff';ecx.lineWidth=2;ecx.beginPath();ecx.moveTo(dx-5,dy-5);ecx.lineTo(dx+5,dy+5);ecx.stroke();ecx.beginPath();ecx.moveTo(dx+5,dy-5);ecx.lineTo(dx-5,dy+5);ecx.stroke(); ecx.fillStyle='#3b82f6';ecx.beginPath();ecx.moveTo(it.x+it.w-16,it.y+it.h);ecx.lineTo(it.x+it.w,it.y+it.h);ecx.lineTo(it.x+it.w,it.y+it.h-16);ecx.closePath();ecx.fill(); }); }
+function eAddToCollage(img){ const maxW=Math.min(img.width,ecv.width*0.55),sc=maxW/img.width,w=Math.round(img.width*sc),h=Math.round(img.height*sc),off=(eCollageItems.length%3)*30; eCollageItems.push({img,x:20+off,y:20+off,w,h}); eRedrawCollage(); }
+function eColDown(e){ const p=egp(e); for(let i=eCollageItems.length-1;i>=0;i--){ const it=eCollageItems[i],dx=it.x+it.w-10,dy=it.y+10; if(Math.hypot(p.x-dx,p.y-dy)<=12){eCollageItems.splice(i,1);eRedrawCollage();return;} if(p.x>=it.x+it.w-ERHANDLE&&p.x<=it.x+it.w+ERHANDLE&&p.y>=it.y+it.h-ERHANDLE&&p.y<=it.y+it.h+ERHANDLE){eColResizeIdx=i;eColResizeOX=p.x;eColResizeOY=p.y;eColResizeW=it.w;eColResizeH=it.h;eColDragIdx=-1;return;} if(p.x>=it.x&&p.x<=it.x+it.w&&p.y>=it.y&&p.y<=it.y+it.h){eColDragIdx=i;eColDragOX=p.x-it.x;eColDragOY=p.y-it.y;eCollageItems.push(eCollageItems.splice(i,1)[0]);eColDragIdx=eCollageItems.length-1;eColResizeIdx=-1;return;} } eColDragIdx=-1;eColResizeIdx=-1; }
+function eColMove(e){ const p=egp(e); if(eColResizeIdx>=0){const it=eCollageItems[eColResizeIdx];it.w=Math.max(60,eColResizeW+(p.x-eColResizeOX));it.h=Math.max(40,eColResizeH+(p.y-eColResizeOY));eRedrawCollage();return;} if(eColDragIdx>=0){eCollageItems[eColDragIdx].x=p.x-eColDragOX;eCollageItems[eColDragIdx].y=p.y-eColDragOY;eRedrawCollage();} }
+function eColUp(){ eColDragIdx=-1; eColResizeIdx=-1; }
+function eCvResizeStart(ev){ ev.preventDefault(); ev.stopPropagation(); const sX=ev.clientX,sY=ev.clientY,sW=ecv.width,sH=ecv.height; const snap=eSnapCv(); function onMove(em){ const nw=Math.max(300,sW+(em.clientX-sX)),nh=Math.max(200,sH+(em.clientY-sY)); ecv.width=nw; ecv.height=nh; ecx.fillStyle='#f1f5f9'; ecx.fillRect(0,0,nw,nh); ecx.drawImage(snap,0,0); if(eCollageMode) eRedrawCollage(); } function onUp(){ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); } document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp); }
+
+// ADMIN SUBMIT BUG
+function openAdminSubmit(){
+  // collect master data from ALL projects
+  const aEnvs=[...new Set(allProjects.flatMap(p=>p.envs||[]))];
+  const aMods=[...new Set(allProjects.flatMap(p=>p.mods||[]))];
+  const aEnvsAll=aEnvs.length?aEnvs:(masterEnvs.length?masterEnvs:['UAT','UAT AIDC','Production','DEV']);
+  const aModsAll=aMods.length?aMods:(masterMods.length?masterMods:['BOL','CB','Mobile','Backend','Frontend']);
+  const projOpts=allProjects.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  const sevPills=['critical','high','medium','low','info'].map(s=>`<button class="pill ${s}${s==='medium'?' on':''}" onclick="window.aSev='${s}';this.closest('.sr').querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));this.classList.add('on')">${s}</button>`).join('');
+  const envOpts=aEnvsAll.map(v=>`<option>${esc(v)}</option>`).join('');
+  const modOpts='<option value="">—</option>'+aModsAll.map(v=>`<option>${esc(v)}</option>`).join('');
+  window.aSev='medium';
+  document.getElementById('asmContent').innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+  <!-- LEFT: SCREENSHOT -->
+  <div class="card-section" style="margin:0;padding:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h4 style="margin:0;font-size:13px;font-weight:700;color:#0f172a">📷 Screenshot &amp; Annotation</h4>
+      <div style="display:flex;gap:6px">
+        <button id="eUnlockBtn" style="display:none;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:11px;padding:4px 10px;cursor:pointer;font-weight:600" onclick="eUnlockCollage()">🖼 แก้รูป</button>
+        <button id="eClrBtn" style="display:none;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;font-size:11px;padding:4px 10px;cursor:pointer;font-weight:600" onclick="eClearCap()">✕ Clear</button>
+      </div>
+    </div>
+    <div id="eTb" style="display:none;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:8px;padding:6px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px">
+      ${[['rect','□'],['arrow','↗'],['pen','✏'],['text','T'],['blur','▪']].map(([t,ic])=>`<button class="tbtn${t==='rect'?' on':''}" id="et-${t}" onclick="eSetTool('${t}')">${ic}</button>`).join('')}
+      <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+      ${['#ef4444','#3b82f6','#f59e0b','#10b981','#1a1a2e'].map((c,i)=>`<div class="ecol" onclick="eSetColor('${c}',this)" style="width:18px;height:18px;border-radius:50%;background:${c};cursor:pointer;outline:${i===0?'3px solid #1e3a5f':'none'};outline-offset:2px;flex-shrink:0"></div>`).join('')}
+      <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+      <input type="range" style="width:56px;accent-color:#2563eb" min="1" max="12" value="2" oninput="eBsz=+this.value">
+      <div style="width:1px;height:18px;background:#e2e8f0;margin:0 2px"></div>
+      <button class="tbtn" onclick="eUndo()">↩</button>
+      <button class="tbtn" onclick="eRedo()">↪</button>
+    </div>
+    <div id="eCapArea" style="border:2px dashed #cbd5e1;border-radius:10px;min-height:120px;display:flex;align-items:center;justify-content:center;background:#f8fafc;overflow:auto;position:relative" onclick="eCapAreaClick()" ondragover="event.preventDefault()" ondrop="eHandleDrop(event)">
+      <div id="eCph" style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;pointer-events:none">📋 Ctrl+V วางรูป หรือใช้ปุ่มด้านล่าง</div>
+      <div style="position:relative;display:inline-block">
+        <canvas id="ecv" style="display:none;max-width:100%"></canvas>
+        <div id="eCvResizeHandle" style="display:none;position:absolute;right:-4px;bottom:-4px;width:14px;height:14px;background:#3b82f6;border-radius:3px;cursor:nwse-resize;z-index:5" onmousedown="eCvResizeStart(event)"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+      <button class="btn bs" style="font-size:11px;padding:5px 10px" onclick="eCapScreen()">📷 Capture Screen</button>
+      <label class="btn bs" style="font-size:11px;padding:5px 10px;cursor:pointer">📁 Upload<input type="file" accept="image/*" style="display:none" onchange="eHandleUpload(event)"></label>
+      <button class="btn bs" style="font-size:11px;padding:5px 10px;background:#eff6ff;color:#2563eb;border-color:#bfdbfe" onclick="eStartBlankCollage()">🖼 Canvas เปล่า</button>
+      <button class="btn bs" id="eDlBtn" style="display:none;font-size:11px;padding:5px 10px" onclick="eDownload()">💾</button>
+      <button class="btn bs" id="eCpBtn" style="display:none;font-size:11px;padding:5px 10px" onclick="eCopy()">📋</button>
+    </div>
+  </div>
+  <!-- RIGHT: FORM -->
+  <div>
+    <div class="fg"><label class="fl">Project *</label><select class="fc" id="asmProj">${projOpts}</select></div>
+    <div class="fg"><label class="fl">Title *</label><input class="fc" id="asmTitle" placeholder="ชื่อ bug สั้นๆ..."></div>
+    <div class="fg"><label class="fl">Severity</label><div class="sr" style="display:flex;gap:6px;flex-wrap:wrap">${sevPills}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label class="fl">Environment</label><select class="fc" id="asmEnv">${envOpts}</select></div>
+      <div class="fg"><label class="fl">Module</label><select class="fc" id="asmMod">${modOpts}</select></div>
+    </div>
+    <div class="fg"><label class="fl">Feature</label><input class="fc" id="asmFeat" placeholder="Login, Payment..."></div>
+    <div class="fg"><label class="fl">Description *</label><textarea class="fc" id="asmDesc" rows="4" style="min-height:100px" placeholder="อธิบาย bug..."></textarea></div>
+    <div class="fg"><label class="fl">Steps to Reproduce</label><textarea class="fc" id="asmSteps" rows="3" style="min-height:80px" placeholder="1. ไปที่...&#10;2. คลิก..."></textarea></div>
+    <button class="btn bp" style="width:100%;padding:12px;font-size:14px" onclick="doAdminSubmitBug()">🚀 Submit Bug Report</button>
+  </div>
+  </div>`;
+  ecv=document.getElementById('ecv'); ecx=ecv?.getContext('2d');
+  eTool='rect'; eColor='#ef4444'; eGotCap=false; eHist=[]; eHi=-1;
+  eCollageMode=false; eCollageItems=[];
+  document.getElementById('eCapArea').addEventListener('paste',eOnPaste);
+  document.getElementById('adminSubM').classList.add('open');
+  document.addEventListener('paste', eOnPaste);
+}
+
+function closeAdminSubmit(){
+  document.getElementById('adminSubM').classList.remove('open');
+  document.removeEventListener('paste', eOnPaste);
+  ecv=null; ecx=null; eGotCap=false; eCollageMode=false; eCollageItems=[];
+}
+
+async function doAdminSubmitBug(){
+  const projId=document.getElementById('asmProj')?.value;
+  const title=document.getElementById('asmTitle')?.value.trim();
+  const desc=document.getElementById('asmDesc')?.value.trim();
+  if(!projId){toast('เลือก Project ก่อน','err');return;}
+  if(!title||!desc){toast('Title/Description ห้ามว่าง','err');return;}
+  const btn=document.querySelector('#asmContent .btn.bp');
+  if(btn){btn.disabled=true;btn.textContent='⏳ กำลัง submit...';}
+  let imageUrl='';
+  if(eGotCap&&ecv){
+    try{
+      const base64=ecv.toDataURL('image/jpeg',.7).replace(/^data:image\/\w+;base64,/,'');
+      const fd=new FormData(); fd.append('key',IMGBB_KEY); fd.append('image',base64);
+      const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
+      const j=await r.json(); if(j.success) imageUrl=j.data.url;
+    }catch(e){}
+  }
+  const j=await api('submit_bug',{projectId:projId,title,severity:window.aSev,module:document.getElementById('asmMod')?.value||'',feature:document.getElementById('asmFeat')?.value.trim()||'',environment:document.getElementById('asmEnv')?.value||'',description:desc,steps:document.getElementById('asmSteps')?.value.trim()||'',imageUrl,reporter:currentUser?.username||'Admin'});
+  if(j.success||j.ok){
+    toast('Submit สำเร็จ ✓','ok');
+    closeAdminSubmit();
+    loadHomeAllBugs();
+  } else {
+    toast('Submit ไม่สำเร็จ','err');
+    if(btn){btn.disabled=false;btn.textContent='🚀 Submit Bug Report';}
+  }
+}
+
+// EXPORT
+function exportCSV(){ const rows=bugs; const cols=['ID','Title','Severity','Status','Module','Feature','Environment','Reporter','Description','Steps','CreatedAt','ImageURL']; const csv=[cols.join(','),...rows.map(b=>[b.id,b.title,b.severity,b.status,b.module,b.feature,b.environment,b.reporter,b.description,b.steps,b.createdAt,b.screenshot].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','))].join('\n'); const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv); a.download='bugs-'+new Date().toISOString().slice(0,10)+'.csv'; a.click(); }
+
+// LIGHTBOX
+function openLb(src){ document.getElementById('lbImg').src=src; document.getElementById('lb').classList.add('open'); }
+function closeLb(){ document.getElementById('lb').classList.remove('open'); }
+
+// TOAST
+let _tt=null;
+function toast(msg,type='info'){
+  const t=document.getElementById('toast');
+  document.getElementById('toastIcon').textContent=type==='ok'?'✅':type==='err'?'❌':'💬';
+  document.getElementById('toastMsg').textContent=msg;
+  const bar=document.getElementById('toastBar'); bar.style.animation='none'; bar.offsetHeight; bar.style.animation='tbar 3s linear forwards';
+  t.className='toast show '+type;
+  if(_tt)clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// UTILS
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function fdate(s){ if(!s)return''; try{return new Date(s).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'});}catch(e){return s;} }
+
+// INIT
+(function(){ const sess=getSession(); if(sess) loadHome(); else { showScreen('login'); setTimeout(()=>document.getElementById('loginUser').focus(),100); } })();
+</script>
+</body>
+</html>

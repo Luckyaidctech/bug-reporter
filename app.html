@@ -343,6 +343,8 @@ textarea.fc{resize:vertical}
     <div class="sb-section" id="adminSection" style="display:none">Admin</div>
     <button class="sb-item" id="snav-master" onclick="switchHome('master')" style="display:none"><span class="icon">🗂</span> Master Data</button>
     <button class="sb-item" id="snav-users" onclick="switchHome('users')" style="display:none"><span class="icon">👥</span> Users</button>
+    <a id="snav-msheet" href="#" target="_blank" class="sb-item" style="display:none;text-decoration:none;color:#4ade80;font-weight:700" onclick="return openMasterSheet(event)"><span class="icon">📊</span> Master Sheet</a>
+    <button class="sb-item" id="snav-report" onclick="doGenerateReport()" style="display:none;color:#f59e0b;font-weight:700"><span class="icon">📈</span> Generate Report</button>
   </div>
   <div class="sb-footer">
     <button class="sb-item logout" onclick="doLogout()"><span class="icon">🚪</span> ออกจากระบบ</button>
@@ -428,7 +430,7 @@ textarea.fc{resize:vertical}
 <!-- ===================== APP ===================== -->
 <div id="screenApp" class="screen">
 <nav class="app-nav">
-  <div class="app-brand">🛡 <span id="appProjName">—</span></div>
+  <div class="app-brand" id="appBrand" onclick="switchProject()" style="cursor:pointer;user-select:none" title="เปลี่ยน Project">🛡 <span id="appProjName">—</span> <span style="font-size:10px;opacity:.6">▼</span></div>
   <button class="app-tab on" id="atab-report" onclick="switchAppTab('report')">🐛 Report Bug</button>
   <button class="app-tab" id="atab-dashboard" onclick="switchAppTab('dashboard')">📊 Dashboard</button>
   <div class="app-nr">
@@ -529,7 +531,7 @@ textarea.fc{resize:vertical}
   </div>
   <div class="g2s">
     <div class="fg"><label class="fl">Environment</label><select class="fc" id="bEnv"></select></div>
-    <div class="fg"><label class="fl">Module</label><select class="fc" id="bMod"></select></div>
+    <div class="fg"><label class="fl">Module</label><input class="fc" id="bMod" list="bModList" placeholder="พิมพ์เพื่อค้นหา Module..." autocomplete="off"><datalist id="bModList"></datalist></div>
   </div>
   <div class="fg"><label class="fl">Feature</label><input class="fc" id="bFeat" placeholder="Login, Payment..."></div>
   <div class="fg"><label class="fl">Description *</label><textarea class="fc" id="bDesc" rows="4" style="min-height:100px" placeholder="อธิบาย bug..."></textarea></div>
@@ -614,7 +616,7 @@ textarea.fc{resize:vertical}
         </div>
       </div>
       <div class="fg"><label class="fl">Role</label><select class="fc" id="auRole"><option value="user">user</option><option value="admin">admin</option></select></div>
-      <div class="fg"><label class="fl">Projects Access</label><select class="fc" id="auProj" multiple style="height:90px"></select></div>
+      <div class="fg"><label class="fl">Projects Access</label><div id="auProj" style="border:1px solid #e2e8f0;border-radius:8px;max-height:140px;overflow-y:auto;padding:6px 10px;background:#fff;display:flex;flex-direction:column;gap:4px"></div></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn bp" style="flex:1" id="userSaveBtn" onclick="createUser()">➕ เพิ่ม User</button>
@@ -729,6 +731,13 @@ async function loadHome(){
     document.getElementById('snav-users').style.display='';
     document.getElementById('snav-allbugs').style.display='';
     document.getElementById('addProjBtn').style.display='';
+    document.getElementById('snav-report').style.display='';
+    const ms=document.getElementById('snav-msheet');
+    ms.style.display='';
+    const MASTER_SHEET='https://docs.google.com/spreadsheets/d/1qk5q30sMOBkZqReFBkhP3l3uXsMAxeSvgvaFTY5QzhQ/edit';
+    if(!localStorage.getItem('masterSheetUrl')) localStorage.setItem('masterSheetUrl',MASTER_SHEET);
+    const msUrl=localStorage.getItem('masterSheetUrl')||MASTER_SHEET;
+    ms.href=msUrl;
     showScreen('home');
     switchHome('projects');
     loadProjects();
@@ -737,23 +746,16 @@ async function loadHome(){
       if(j.bugs){ const ab=document.getElementById('allBugsBadge'); if(ab) ab.textContent=j.bugs.length; }
     });
   } else {
-    // Regular user → load projects then go directly to the first assigned project's report screen
     const j=await api('get_projects');
     allProjects=j.projects||[];
     const userProjs=sess.projects||[];
-    // find first project this user has access to
-    const firstProj=userProjs.length
-      ? allProjects.find(p=>userProjs.includes(p.id)||userProjs.includes(p.name))
-      : allProjects[0];
-    const lastId=localStorage.getItem('lastProjectId');
-    const lastProj=lastId?allProjects.find(p=>p.id===lastId||userProjs.includes(p.id)||userProjs.includes(p.name)):null;
-    const toLoad=lastProj||firstProj;
-    if(toLoad){ enterProject(toLoad); }
-    else{
-      // no project assigned — show home with project list only
-      showScreen('home');
-      switchHome('projects');
-      loadProjects();
+    const myProjects=userProjs.length
+      ? allProjects.filter(p=>userProjs.includes(p.id)||userProjs.includes(p.name))
+      : allProjects;
+    if(myProjects.length===1){
+      enterProject(myProjects[0]);
+    } else {
+      showProjectPicker(myProjects);
     }
   }
   document.getElementById('appLoader').style.display='none';
@@ -780,7 +782,7 @@ async function loadProjects(){
   const ms=document.getElementById('mdProjSel');
   ms.innerHTML='<option value="">— เลือก Project —</option>'+allProjects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
   const us=document.getElementById('auProj');
-  us.innerHTML=allProjects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  us.innerHTML=allProjects.map(p=>`<label style="display:flex;align-items:center;gap:8px;padding:4px 2px;cursor:pointer;font-size:13px"><input type="checkbox" value="${p.id}" style="width:16px;height:16px;accent-color:#1e40af"> ${esc(p.name)}</label>`).join('');
 }
 
 function renderProjectsList(filter=''){
@@ -1254,8 +1256,7 @@ function editUserInline(id){
   document.getElementById('auPin').value='';
   document.getElementById('auRole').value=u.role||'user';
   // pre-select projects
-  const sel=document.getElementById('auProj');
-  [...sel.options].forEach(o=>{ o.selected=(u.projects||[]).includes(o.value); });
+  document.querySelectorAll('#auProj input[type=checkbox]').forEach(cb=>{ cb.checked=(u.projects||[]).includes(cb.value); });
   // Change modal save button to update
   document.getElementById('addUserM').classList.add('open');
   document.getElementById('addUserM').dataset.editId=id;
@@ -1270,14 +1271,14 @@ function showAddUser(){
   document.getElementById('addUserM').dataset.editId='';
   document.getElementById('addUserM').querySelector('h3').textContent='➕ New User';
   document.getElementById('userSaveBtn').textContent='➕ เพิ่ม User';
-  [...document.getElementById('auProj').options].forEach(o=>o.selected=false);
+  document.querySelectorAll('#auProj input[type=checkbox]').forEach(cb=>cb.checked=false);
 }
 
 async function createUser(){
   const name=document.getElementById('auName').value.trim();
   const pin=document.getElementById('auPin').value.trim();
   const role=document.getElementById('auRole').value;
-  const projects=[...document.getElementById('auProj').selectedOptions].map(o=>o.value);
+  const projects=[...document.querySelectorAll('#auProj input[type=checkbox]:checked')].map(cb=>cb.value);
   const editId=document.getElementById('addUserM').dataset.editId||'';
   if(!name){toast('กรอกชื่อ','err');return;}
   if(!editId&&!pin){toast('กรอก PIN','err');return;}
@@ -1302,6 +1303,37 @@ async function deleteUser(id,name){
 }
 
 // ENTER PROJECT / APP
+function switchProject(){
+  const sess=getSession();
+  const userProjs=sess?.projects||[];
+  const myProjects=userProjs.length
+    ? allProjects.filter(p=>userProjs.includes(p.id)||userProjs.includes(p.name))
+    : isAdmin()?allProjects:[];
+  if(myProjects.length<=1){ toast('ไม่มี project อื่นให้เปลี่ยน','info'); return; }
+  showProjectPicker(myProjects);
+}
+
+function showProjectPicker(projects){
+  document.getElementById('appLoader').style.display='none';
+  document.documentElement.classList.remove('has-sess');
+  showScreen('app');
+  const html=`<div class="mo open" id="projPickerMo" style="z-index:9000">
+    <div class="mb" style="max-width:420px;padding:28px;text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">📁</div>
+      <h3 style="margin-bottom:6px">เลือก Project</h3>
+      <p style="font-size:13px;color:#64748b;margin-bottom:20px">คุณมีสิทธิ์เข้าถึง ${projects.length} project — กรุณาเลือก</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${projects.map(p=>`<button onclick="closeProjPicker();enterProject(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="padding:14px 18px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;font-size:14px;font-weight:600;text-align:left;display:flex;align-items:center;gap:12px;transition:all .15s" onmouseover="this.style.borderColor='#1e40af';this.style.background='#eff6ff'" onmouseout="this.style.borderColor='#e2e8f0';this.style.background='#fff'">
+          <span style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#1e40af,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;flex-shrink:0">${esc(p.name.slice(0,1))}</span>
+          <span>${esc(p.name)}</span>
+        </button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function closeProjPicker(){ document.getElementById('projPickerMo')?.remove(); }
+
 function enterProject(p, skipTabRestore){
   currentProject=p; allProjMode=false;
   masterEnvs=[...(p.envs||['UAT AIDC','UAT BOL','Production AIDC','Production BOL','DEV BOL'])];
@@ -1345,7 +1377,8 @@ function populateDropdowns(){
   const envEl=document.getElementById('bEnv');
   const modEl=document.getElementById('bMod');
   if(envEl) envEl.innerHTML=masterEnvs.map(v=>`<option>${esc(v)}</option>`).join('');
-  if(modEl) modEl.innerHTML='<option value="">— Module —</option>'+masterMods.map(v=>`<option>${esc(v)}</option>`).join('');
+  const modList=document.getElementById('bModList');
+  if(modList) modList.innerHTML=masterMods.map(v=>`<option value="${esc(v)}">`).join('');
   const fsev=document.getElementById('fsev');
   if(fsev) fsev.innerHTML='<option value="">All Severity</option>'+masterSevs.map(v=>`<option value="${v}">${v}</option>`).join('');
   const fst=document.getElementById('fst');
@@ -1362,6 +1395,37 @@ function switchAppTab(name){
   localStorage.setItem('lastTab',name);
 }
 
+async function doGenerateReport(){
+  const sess=getSession();
+  if(!sess||sess.role!=='admin'){toast('เฉพาะ Admin เท่านั้น','error');return;}
+  const btn=document.getElementById('snav-report');
+  btn.textContent='⏳ กำลังสร้าง...';
+  btn.disabled=true;
+  try{
+    const res=await api('generate_report');
+    const url=localStorage.getItem('masterSheetUrl')||'https://docs.google.com/spreadsheets/d/1qk5q30sMOBkZqReFBkhP3l3uXsMAxeSvgvaFTY5QzhQ/edit';
+    if(res.success){
+      const ok=confirm('✅ สร้าง Report เสร็จแล้ว!\n\nดูได้ที่ sheet "BugReport" ใน Master Sheet\n\nกด OK เพื่อเปิด Master Sheet');
+      if(ok) window.location.href=url;
+    } else {
+      alert('❌ เกิดข้อผิดพลาด:\n'+(res.error||'Unknown error'));
+    }
+  } catch(e){alert('❌ เกิดข้อผิดพลาด:\n'+e.message);}
+  btn.innerHTML='<span class="icon">📈</span> Generate Report';
+  btn.disabled=false;
+}
+
+function openMasterSheet(e){
+  const url=localStorage.getItem('masterSheetUrl')||'';
+  if(url){ document.getElementById('snav-msheet').href=url; return true; }
+  const input=prompt('ใส่ URL ของ Master Google Sheet:','');
+  if(input?.trim()){
+    localStorage.setItem('masterSheetUrl',input.trim());
+    document.getElementById('snav-msheet').href=input.trim();
+    window.open(input.trim(),'_blank');
+  }
+  return false;
+}
 function openSheetLink(e){
   if(!currentProject?.sheetUrl){ toast('ยังไม่ได้ตั้ง Sheet URL','err'); e.preventDefault(); return false; }
   return true;
@@ -1592,8 +1656,59 @@ function renderBugView(){
       <button class="btn bp" style="font-size:13px;padding:8px 18px" onclick="toggleEditMode()">✏ Edit</button>
       <button class="btn bd" style="font-size:13px;padding:8px 18px" onclick="deleteBug('${b.id}')">🗑 Delete</button>
       <button class="btn bs" style="font-size:13px;padding:8px 18px;margin-left:auto" onclick="closeBug()">Close</button>
+    </div>
+    <!-- COMMENTS -->
+    <div style="margin-top:20px;border-top:2px solid #e5e7eb;padding-top:16px">
+      <div style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">💬 Comments</div>
+      <div id="cmtList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+        <div style="color:#94a3b8;font-size:13px;text-align:center;padding:10px">กำลังโหลด...</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea id="cmtInput" rows="2" class="fc" style="flex:1;resize:none;font-size:13px;min-height:60px" placeholder="เขียน comment... (Shift+Enter ขึ้นบรรทัดใหม่)"></textarea>
+        <button class="btn bp" style="padding:8px 16px;font-size:13px;white-space:nowrap" onclick="submitComment('${b.id}')">ส่ง</button>
+      </div>
     </div>`;
   document.getElementById('bmEditBtn').style.display='none';
+  const projId = _viewBug._projectId || currentProject?.id;
+  loadComments(b.id, projId);
+}
+
+async function loadComments(bugId, projectId){
+  const el=document.getElementById('cmtList'); if(!el) return;
+  const res=await api('get_comments',{bugId, projectId});
+  if(!res.comments||!res.comments.length){
+    el.innerHTML='<div style="color:#94a3b8;font-size:13px;text-align:center;padding:10px">ยังไม่มี comment</div>';
+    return;
+  }
+  el.innerHTML=res.comments.map(c=>{
+    const name=esc(c.author||'?');
+    const av=name.slice(0,2).toUpperCase();
+    const txt=esc(c.text||'');
+    const dt=fdate(c.createdAt);
+    return `<div style="display:flex;gap:10px;align-items:flex-start">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${av}</div>
+      <div style="flex:1;background:#f8fafc;border-radius:10px;padding:9px 12px;border:1px solid #e5e7eb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:12px;font-weight:700;color:#1e3a5f">${name}</span>
+          <span style="font-size:11px;color:#94a3b8">${dt}</span>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.6;white-space:pre-wrap;color:#374151">${txt}</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitComment(bugId){
+  const inp=document.getElementById('cmtInput');
+  const text=(inp?.value||'').trim();
+  if(!text){toast('กรุณาพิมพ์ comment','info');return;}
+  const sess=getSession();
+  const projId=_viewBug?._projectId||currentProject?.id;
+  inp.disabled=true;
+  const res=await api('add_comment',{bugId,projectId:projId,text,author:sess?.name||'?'});
+  inp.disabled=false;
+  if(res.success){inp.value=''; loadComments(bugId,projId);}
+  else toast(res.error||'ส่งไม่ได้','error');
 }
 
 function renderBugEdit(){

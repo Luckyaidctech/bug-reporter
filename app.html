@@ -228,6 +228,8 @@ textarea.fc{resize:vertical}
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media(max-width:768px){
+  #capArea,#cv,#eCvArea,#ecv{max-width:100%;width:100%!important;box-sizing:border-box}
+  .cvwrap{width:100%}
   .sidebar{display:none}
   .main-content{margin-left:0}
   .main-header{padding:14px 16px}
@@ -236,13 +238,20 @@ textarea.fc{resize:vertical}
   .stat-grid{grid-template-columns:1fr 1fr}
   #bgrid,#hab-bgrid{grid-template-columns:1fr}
   .g2,.g2s{grid-template-columns:1fr!important}
-  .mb{border-radius:0;max-width:100%;margin:0}
-  .mo{padding:0;align-items:flex-end}
+  .mb{border-radius:12px 12px 0 0;max-width:100%;margin:0;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .mo{padding:0;align-items:flex-end;touch-action:pan-y}
+  .mc{padding:16px}
   .trans-bar{grid-template-columns:1fr 1fr;gap:4px}
   .app-nav{overflow-x:auto;flex-wrap:nowrap}
   .app-tab{padding:10px 10px;font-size:12px}
-  .fbar{flex-direction:column;gap:6px}
-  .fbar .fc{min-width:0;width:100%}
+  /* filter bar mobile: 2 col grid */
+  .fbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
+  .fbar .fc{width:100%;min-width:0}
+  .fbar .fbar-search{grid-column:1/-1}
+  .fbar .fbar-dates{grid-column:1/-1;display:flex;gap:6px}
+  .fbar .fbar-dates .fc{flex:1}
+  .fbar .fbar-actions{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
+  .fbar .fbar-count{grid-column:1/-1;font-size:11px;color:#94a3b8}
 }
 @media(max-width:480px){
   .proj-grid{grid-template-columns:1fr}
@@ -351,17 +360,21 @@ textarea.fc{resize:vertical}
     </div>
     <div class="main-body">
       <div class="stat-grid" id="hab-srow"></div>
-      <div class="fbar" style="margin-bottom:16px;flex-wrap:wrap">
-        <input class="fc" id="hab-fs" placeholder="🔍 ค้นหา..." oninput="renderHAB()">
+      <div class="fbar" style="margin-bottom:16px">
+        <input class="fc fbar-search" id="hab-fs" placeholder="🔍 ค้นหา..." oninput="renderHAB()">
         <select class="fc" id="hab-fproj" onchange="renderHAB()"><option value="">All Projects</option></select>
         <select class="fc" id="hab-fsev" onchange="renderHAB()"><option value="">All Severity</option></select>
         <select class="fc" id="hab-fst" onchange="renderHAB()"><option value="">All Status</option></select>
         <select class="fc" id="hab-frep" onchange="renderHAB()"><option value="">All Reporter</option></select>
         <select class="fc" id="hab-fmod" onchange="renderHAB()"><option value="">All Module</option></select>
-        <input class="fc" type="date" id="hab-fdFrom" onchange="renderHAB()" style="max-width:140px">
-        <input class="fc" type="date" id="hab-fdTo" onchange="renderHAB()" style="max-width:140px">
-        <button class="btn bs" onclick="clearHABF()" style="font-size:13px;padding:7px 12px" title="Clear">✕</button>
-        <span id="hab-count" style="font-size:12px;color:#94a3b8;padding:6px 0;white-space:nowrap;margin-left:auto">0 bugs</span>
+        <div class="fbar-dates">
+          <input class="fc" type="date" id="hab-fdFrom" onchange="renderHAB()">
+          <input class="fc" type="date" id="hab-fdTo" onchange="renderHAB()">
+        </div>
+        <div class="fbar-actions">
+          <button class="btn bs" onclick="clearHABF()" style="font-size:13px;padding:7px 12px" title="Clear">✕ Clear</button>
+          <span id="hab-count" class="fbar-count" style="font-size:12px;color:#94a3b8;padding:6px 0;white-space:nowrap">0 bugs</span>
+        </div>
       </div>
       <div id="hab-lrow" style="display:none;padding:60px;text-align:center"><span class="spin" style="border-top-color:#1e40af;border-color:rgba(30,64,175,.3)"></span></div>
       <div class="bug-grid" id="hab-bgrid"></div>
@@ -513,20 +526,24 @@ textarea.fc{resize:vertical}
 <div class="tab-content" id="tc-dashboard">
   <div class="stat-grid" id="srow"></div>
   <div class="fbar">
-    <input class="fc" id="fs" placeholder="🔍 ค้นหา..." oninput="render()">
+    <input class="fc fbar-search" id="fs" placeholder="🔍 ค้นหา..." oninput="render()">
     <select class="fc" id="fproj" onchange="render()" style="display:none"><option value="">All Projects</option></select>
     <select class="fc" id="fsev" onchange="render()"><option value="">All Severity</option></select>
     <select class="fc" id="fst" onchange="render()"><option value="">All Status</option></select>
     <select class="fc" id="frep" onchange="render()"><option value="">All Reporter</option></select>
     <select class="fc" id="fmod" onchange="render()"><option value="">All Module</option></select>
-    <input class="fc" type="date" id="fdateFrom" onchange="render()" style="max-width:140px">
-    <input class="fc" type="date" id="fdateTo" onchange="render()" style="max-width:140px">
-    <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="clearF()">✕</button>
-    <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="exportCSV()">📥 CSV</button>
-    <button class="btn bp" style="font-size:12px;padding:7px 12px" onclick="loadBugs()">🔄</button>
-    <button class="btn bs" id="selModeBtn" style="font-size:12px;padding:7px 12px" onclick="toggleSelMode()">☑ Select</button>
-    <button class="btn bd" id="delSelBtn" style="display:none;font-size:12px;padding:7px 12px" onclick="delSelected()">🗑 Del (<span id="selCount">0</span>)</button>
-    <span style="font-size:11px;color:#94a3b8;margin-left:auto" id="dsub"></span>
+    <div class="fbar-dates">
+      <input class="fc" type="date" id="fdateFrom" onchange="render()">
+      <input class="fc" type="date" id="fdateTo" onchange="render()">
+    </div>
+    <div class="fbar-actions">
+      <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="clearF()">✕</button>
+      <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="exportCSV()">📥 CSV</button>
+      <button class="btn bp" style="font-size:12px;padding:7px 12px" onclick="loadBugs()">🔄</button>
+      <button class="btn bs" id="selModeBtn" style="font-size:12px;padding:7px 12px" onclick="toggleSelMode()">☑ Select</button>
+      <button class="btn bd" id="delSelBtn" style="display:none;font-size:12px;padding:7px 12px" onclick="delSelected()">🗑 Del (<span id="selCount">0</span>)</button>
+      <span style="font-size:11px;color:#94a3b8" id="dsub"></span>
+    </div>
   </div>
   <div id="lrow"><span class="spin"></span> กำลังโหลด...</div>
   <div id="bgrid"></div>
@@ -618,9 +635,9 @@ const cv=document.getElementById('cv');
 const cx=cv.getContext('2d');
 
 // SESSION
-function getSession(){ return JSON.parse(sessionStorage.getItem('session')||'null'); }
-function setSession(s){ sessionStorage.setItem('session',JSON.stringify(s)); }
-function clearSession(){ sessionStorage.removeItem('session'); }
+function getSession(){ return JSON.parse(localStorage.getItem('session')||'null'); }
+function setSession(s){ localStorage.setItem('session',JSON.stringify(s)); }
+function clearSession(){ localStorage.removeItem('session'); }
 function isAdmin(){ return getSession()?.role==='admin'; }
 
 // API
@@ -1601,7 +1618,7 @@ async function saveEditBug(){
 
 async function updateStatus(id,status){
   const j=await api('update_status',{projectId:currentProject?.id,id,status});
-  if(j.success||j.ok){ const b=bugs.find(x=>x.id===id); if(b)b.status=status; if(_viewBug?.id===id)_viewBug.status=status; renderStats();render();toast('อัปเดตแล้ว','ok'); }
+  if(j.success||j.ok){ const b=bugs.find(x=>x.id===id); if(b)b.status=status; if(_viewBug?.id===id){_viewBug.status=status;if(!editMode)renderBugView();} renderStats();render();toast('อัปเดตแล้ว','ok'); }
   else toast('อัปเดตไม่สำเร็จ','err');
 }
 
@@ -1656,6 +1673,7 @@ function restoreEditOrig(){
 
 // CANVAS MAIN
 async function capScreen(){
+  if(!navigator.mediaDevices?.getDisplayMedia){toast('Capture Screen ไม่รองรับบนมือถือ — ใช้ Upload แทนค่ะ','info');return;}
   try{
     const stream=await navigator.mediaDevices.getDisplayMedia({preferCurrentTab:true});
     const video=document.createElement('video'); video.srcObject=stream; await video.play();
@@ -1684,6 +1702,7 @@ function onImgLoad(){
   ['dlBtn','cpBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
   hist=[]; hi=-1; saveH();
   cv.onmousedown=startD; cv.onmousemove=moveD; cv.onmouseup=endD; cv.onmouseleave=endD;
+  addTouch(cv,startD,moveD,endD);
 }
 
 function showCapBtns(show){
@@ -1763,6 +1782,7 @@ function colUp(){ colDragIdx=-1; colResizeIdx=-1; }
 function lockCollage(){
   collageMode=false; hist=[]; hi=-1; saveH();
   cv.onmousedown=startD; cv.onmousemove=moveD; cv.onmouseup=endD; cv.onmouseleave=endD;
+  addTouch(cv,startD,moveD,endD);
   document.getElementById('cvResizeHandle').style.display='none';
   const ul=document.getElementById('unlockBtn');
   if(ul){ ul.textContent='🖼 แก้รูป'; ul.style.display=''; }
@@ -1786,6 +1806,7 @@ function unlockCollage(){
   }
   collageMode=true; hist=[]; hi=-1;
   cv.onmousedown=colDown; cv.onmousemove=colMove; cv.onmouseup=colUp; cv.onmouseleave=colUp;
+  addTouch(cv,colDown,colMove,colUp);
   document.getElementById('cvResizeHandle').style.display='block';
   const ul=document.getElementById('unlockBtn');
   if(ul){ ul.textContent='🎨 วาด'; ul.style.display=''; }
@@ -1793,7 +1814,8 @@ function unlockCollage(){
   toast('ลากย้ายรูปได้เลยค่ะ','ok');
 }
 
-function gp(e){ const r=cv.getBoundingClientRect(); return{x:(e.clientX-r.left)*cv.width/r.width,y:(e.clientY-r.top)*cv.height/r.height}; }
+function gp(e){ const r=cv.getBoundingClientRect(); const src=e.touches?e.touches[0]:e; return{x:(src.clientX-r.left)*cv.width/r.width,y:(src.clientY-r.top)*cv.height/r.height}; }
+function addTouch(el,down,move,up){ el.addEventListener('touchstart',e=>{e.preventDefault();down(e);},{passive:false}); el.addEventListener('touchmove',e=>{e.preventDefault();move(e);},{passive:false}); el.addEventListener('touchend',e=>{e.preventDefault();up(e);},{passive:false}); }
 function startD(e){ if(tool==='text'){addTxt(e);return;} drawing=true; const p=gp(e); sx=p.x; sy=p.y; if(tool==='pen') penPts=[{x:sx,y:sy}]; }
 function snapCv(){ const t=document.createElement('canvas'); t.width=cv.width; t.height=cv.height; t.getContext('2d').drawImage(cv,0,0); return t; }
 function saveH(){ hist=hist.slice(0,hi+1); hist.push(snapCv()); if(hist.length>30)hist.shift(); hi=hist.length-1; }
@@ -1813,7 +1835,8 @@ function eSnapCv(){ const t=document.createElement('canvas'); t.width=ecv.width;
 function eSaveH(){ eHist=eHist.slice(0,eHi+1); eHist.push(eSnapCv()); if(eHist.length>30)eHist.shift(); eHi=eHist.length-1; }
 function eUndo(){ if(eHi>0){eHi--;ecx.clearRect(0,0,ecv.width,ecv.height);ecx.drawImage(eHist[eHi],0,0);} }
 function eRedo(){ if(eHi<eHist.length-1){eHi++;ecx.clearRect(0,0,ecv.width,ecv.height);ecx.drawImage(eHist[eHi],0,0);} }
-function egp(e){ const r=ecv.getBoundingClientRect(); return{x:(e.clientX-r.left)*ecv.width/r.width,y:(e.clientY-r.top)*ecv.height/r.height}; }
+function egp(e){ const r=ecv.getBoundingClientRect(); const src=e.touches?e.touches[0]:e; return{x:(src.clientX-r.left)*ecv.width/r.width,y:(src.clientY-r.top)*ecv.height/r.height}; }
+function eAddTouch(el,down,move,up){ el.addEventListener('touchstart',e=>{e.preventDefault();down(e);},{passive:false}); el.addEventListener('touchmove',e=>{e.preventDefault();move(e);},{passive:false}); el.addEventListener('touchend',e=>{e.preventDefault();up(e);},{passive:false}); }
 function eStartD(e){ if(eTool==='text'){eAddTxt(e);return;} eDrawing=true; const p=egp(e); eSx=p.x; eSy=p.y; if(eTool==='pen') ePenPts=[{x:eSx,y:eSy}]; }
 function eMoveD(e){
   if(!eDrawing)return; const p=egp(e); const snap=eHist[eHi]; if(!snap)return;
@@ -1837,9 +1860,10 @@ function eOnImgLoad(){
   ['eDlBtn','eCpBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
   eHist=[]; eHi=-1; eSaveH();
   ecv.onmousedown=eStartD; ecv.onmousemove=eMoveD; ecv.onmouseup=eEndD; ecv.onmouseleave=eEndD;
+  eAddTouch(ecv,eStartD,eMoveD,eEndD);
 }
 
-async function eCapScreen(){ try{ const stream=await navigator.mediaDevices.getDisplayMedia({preferCurrentTab:true}); const video=document.createElement('video'); video.srcObject=stream; await video.play(); ecv.width=video.videoWidth; ecv.height=video.videoHeight; ecx.drawImage(video,0,0); stream.getTracks().forEach(t=>t.stop()); video.remove(); eOnImgLoad(); }catch(e){toast('Capture ไม่สำเร็จ','err');} }
+async function eCapScreen(){ if(!navigator.mediaDevices?.getDisplayMedia){toast('Capture Screen ไม่รองรับบนมือถือ — ใช้ Upload แทนค่ะ','info');return;} try{ const stream=await navigator.mediaDevices.getDisplayMedia({preferCurrentTab:true}); const video=document.createElement('video'); video.srcObject=stream; await video.play(); ecv.width=video.videoWidth; ecv.height=video.videoHeight; ecx.drawImage(video,0,0); stream.getTracks().forEach(t=>t.stop()); video.remove(); eOnImgLoad(); }catch(e){toast('Capture ไม่สำเร็จ','err');} }
 function eHandleUpload(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{const i=new Image();i.onload=()=>{ if(eCollageMode){eAddToCollage(i);}else{ecv.width=i.width;ecv.height=i.height;ecx.drawImage(i,0,0);eOnImgLoad();} };i.src=ev.target.result;}; r.readAsDataURL(f); e.target.value=''; }
 function eOnPaste(e){ for(const it of (e.clipboardData?.items||[])){ if(it.type.startsWith('image/')){ const r=new FileReader(); r.onload=ev=>{const i=new Image();i.onload=()=>{ if(eCollageMode){eAddToCollage(i);}else{ecv.width=i.width;ecv.height=i.height;ecx.drawImage(i,0,0);eOnImgLoad();} };i.src=ev.target.result;}; r.readAsDataURL(it.getAsFile()); e.preventDefault(); return; } } }
 function eHandleDrop(ev){ ev.preventDefault(); const f=ev.dataTransfer.files[0]; if(!f||!f.type.startsWith('image/'))return; const r=new FileReader(); r.onload=e=>{const i=new Image();i.onload=()=>{if(eCollageMode){eAddToCollage(i);}else{ecv.width=i.width;ecv.height=i.height;ecx.drawImage(i,0,0);eOnImgLoad();}};i.src=e.target.result;}; r.readAsDataURL(f); }
@@ -1864,6 +1888,7 @@ function eStartBlankCollage(){
   const clr=document.getElementById('eClrBtn'); if(clr) clr.style.display='';
   document.getElementById('eCvResizeHandle').style.display='block';
   ecv.onmousedown=eColDown; ecv.onmousemove=eColMove; ecv.onmouseup=eColUp; ecv.onmouseleave=eColUp;
+  eAddTouch(ecv,eColDown,eColMove,eColUp);
   const ul=document.getElementById('eUnlockBtn'); if(ul){ul.textContent='🎨 วาด';ul.style.display='';}
   toast('Paste (Ctrl+V) หรือ Upload รูปได้เลยค่ะ','ok');
 }
@@ -1877,6 +1902,7 @@ function eUnlockCollage(){
   }
   eCollageMode=true; eHist=[]; eHi=-1;
   ecv.onmousedown=eColDown; ecv.onmousemove=eColMove; ecv.onmouseup=eColUp; ecv.onmouseleave=eColUp;
+  eAddTouch(ecv,eColDown,eColMove,eColUp);
   document.getElementById('eCvResizeHandle').style.display='block';
   const ul=document.getElementById('eUnlockBtn'); if(ul){ul.textContent='🎨 วาด';ul.style.display='';}
   eRedrawCollage(); toast('ลากย้ายรูปได้เลยค่ะ','ok');
@@ -1884,6 +1910,7 @@ function eUnlockCollage(){
 function eLockCollage(){
   eCollageMode=false; eHist=[]; eHi=-1; eSaveH();
   ecv.onmousedown=eStartD; ecv.onmousemove=eMoveD; ecv.onmouseup=eEndD; ecv.onmouseleave=eEndD;
+  eAddTouch(ecv,eStartD,eMoveD,eEndD);
   document.getElementById('eCvResizeHandle').style.display='none';
   const ul=document.getElementById('eUnlockBtn'); if(ul){ul.textContent='🖼 แก้รูป';ul.style.display='';}
 }

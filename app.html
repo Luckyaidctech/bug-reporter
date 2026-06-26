@@ -2,8 +2,16 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Bug Reporter</title>
+<script>try{if(localStorage.getItem('session'))document.documentElement.classList.add('has-sess')}catch(e){}</script>
+<style>
+html.has-sess #screenLogin{display:none!important}
+#appLoader{display:none;position:fixed;inset:0;background:#f0f2f5;z-index:99999;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+html.has-sess #appLoader{display:flex}
+#appLoader .spin{width:40px;height:40px;border:4px solid rgba(30,64,175,.2);border-top-color:#1e40af;border-radius:50%;animation:spin .8s linear infinite}
+#appLoader p{color:#64748b;font-size:14px;font-weight:500}
+</style>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#1e293b;min-height:100vh}
@@ -228,6 +236,7 @@ textarea.fc{resize:vertical}
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media(max-width:768px){
+  input,textarea,select{font-size:16px!important}
   #capArea,#cv,#eCvArea,#ecv{max-width:100%;width:100%!important;box-sizing:border-box}
   #cvResizeHandle,#eCvResizeHandle{display:none!important}
   #capArea{min-height:120px}
@@ -284,6 +293,7 @@ textarea.fc{resize:vertical}
 </div>
 
 <!-- ===================== LOGIN ===================== -->
+<div id="appLoader"><div class="spin"></div><p>กำลังโหลด...</p></div>
 <div id="screenLogin" class="screen active">
 <div class="login-wrap">
 <div class="login-card">
@@ -735,7 +745,10 @@ async function loadHome(){
     const firstProj=userProjs.length
       ? allProjects.find(p=>userProjs.includes(p.id)||userProjs.includes(p.name))
       : allProjects[0];
-    if(firstProj){ enterProject(firstProj); }
+    const lastId=localStorage.getItem('lastProjectId');
+    const lastProj=lastId?allProjects.find(p=>p.id===lastId||userProjs.includes(p.id)||userProjs.includes(p.name)):null;
+    const toLoad=lastProj||firstProj;
+    if(toLoad){ enterProject(toLoad); }
     else{
       // no project assigned — show home with project list only
       showScreen('home');
@@ -743,6 +756,8 @@ async function loadHome(){
       loadProjects();
     }
   }
+  document.getElementById('appLoader').style.display='none';
+  document.documentElement.classList.remove('has-sess');
 }
 
 function switchHome(tab){
@@ -1219,7 +1234,7 @@ async function deleteUser(id,name){
 }
 
 // ENTER PROJECT / APP
-function enterProject(p){
+function enterProject(p, skipTabRestore){
   currentProject=p; allProjMode=false;
   masterEnvs=[...(p.envs||['UAT AIDC','UAT BOL','Production AIDC','Production BOL','DEV BOL'])];
   masterMods=[...(p.mods||['BOL','CB','Mobile'])];
@@ -1231,7 +1246,9 @@ function enterProject(p){
   sl.href=p.sheetUrl||'#'; sl.style.opacity=p.sheetUrl?'1':'0.45';
   showScreen('app');
   updateAppNavForRole();
-  switchAppTab('report');
+  localStorage.setItem('lastProjectId', p.id);
+  const tab = (!skipTabRestore && localStorage.getItem('lastTab')) || 'report';
+  switchAppTab(tab);
   loadBugs();
 }
 
@@ -1274,6 +1291,7 @@ function switchAppTab(name){
     document.getElementById('atab-'+t).classList.toggle('on',t===name);
     document.getElementById('tc-'+t).classList.toggle('active',t===name);
   });
+  localStorage.setItem('lastTab',name);
 }
 
 function openSheetLink(e){
@@ -1488,7 +1506,7 @@ function renderBugView(){
     <!-- body: LEFT (image+desc+steps) | RIGHT (details) — matches backup -->
     <div class="g2">
       <div>
-        ${b.screenshot?`<div style="height:300px;background:#f1f5f9;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:zoom-in" onclick="openLb('${esc(b.screenshot)}')"><img src="${esc(b.screenshot)}" style="max-width:100%;max-height:100%;object-fit:contain;display:block" loading="lazy"></div>`:
+        ${b.screenshot?`<div style="background:#f1f5f9;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;cursor:zoom-in;text-align:center" onclick="openLb('${esc(b.screenshot)}')"><img src="${esc(b.screenshot)}" style="width:100%;height:auto;display:block;border-radius:8px" loading="lazy"><div style="font-size:11px;color:#94a3b8;padding:4px 0 6px">แตะเพื่อขยาย 🔍</div></div>`:
           '<div style="height:300px;background:#f8fafc;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;color:#94a3b8">ไม่มี screenshot</div>'}
         ${b.description?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Description</div><p style="font-size:13px;line-height:1.7;white-space:pre-wrap;margin:0">${esc(b.description)}</p></div>`:''}
         ${b.steps?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Steps to Reproduce</div><pre style="font-size:12px;background:#f8fafc;padding:11px;border-radius:7px;white-space:pre-wrap;line-height:1.7;margin:0">${esc(b.steps)}</pre></div>`:''}
@@ -1797,7 +1815,7 @@ function addToCollage(img){ const maxW=Math.min(img.width,cv.width*0.55),sc=maxW
 function redrawCollage(){ cx.fillStyle='#f1f5f9'; cx.fillRect(0,0,cv.width,cv.height); cx.strokeStyle='#e2e8f0'; cx.lineWidth=1; for(let x=0;x<cv.width;x+=60){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,cv.height);cx.stroke();} for(let y=0;y<cv.height;y+=60){cx.beginPath();cx.moveTo(0,y);cx.lineTo(cv.width,y);cx.stroke();} if(!collageItems.length){cx.fillStyle='#94a3b8';cx.font='bold 16px sans-serif';cx.textAlign='center';cx.fillText('Paste รูป (Ctrl+V) หรือ Upload',cv.width/2,cv.height/2);cx.textAlign='left';return;} collageItems.forEach((it,i)=>{ cx.shadowColor='rgba(0,0,0,.15)';cx.shadowBlur=8;cx.shadowOffsetX=2;cx.shadowOffsetY=2; cx.drawImage(it.img,it.x,it.y,it.w,it.h); cx.shadowColor='transparent';cx.shadowBlur=0;cx.shadowOffsetX=0;cx.shadowOffsetY=0; cx.strokeStyle=colDragIdx===i?'#3b82f6':'#cbd5e1';cx.lineWidth=colDragIdx===i?3:1.5;cx.strokeRect(it.x,it.y,it.w,it.h); cx.fillStyle='rgba(30,64,175,.75)';cx.fillRect(it.x,it.y,32,18);cx.fillStyle='#fff';cx.font='bold 11px sans-serif';cx.fillText('#'+(i+1),it.x+4,it.y+13); const dx=it.x+it.w-10,dy=it.y+10; cx.fillStyle='#ef4444';cx.beginPath();cx.arc(dx,dy,10,0,Math.PI*2);cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.beginPath();cx.moveTo(dx-5,dy-5);cx.lineTo(dx+5,dy+5);cx.stroke();cx.beginPath();cx.moveTo(dx+5,dy-5);cx.lineTo(dx-5,dy+5);cx.stroke(); cx.fillStyle='#3b82f6';cx.beginPath();cx.moveTo(it.x+it.w-16,it.y+it.h);cx.lineTo(it.x+it.w,it.y+it.h);cx.lineTo(it.x+it.w,it.y+it.h-16);cx.closePath();cx.fill(); }); }
 function colDown(e){ const p=gp(e); const tr=tapR(); const rh=rHandle(); for(let i=collageItems.length-1;i>=0;i--){ const it=collageItems[i],dx=it.x+it.w-10,dy=it.y+10; if(Math.hypot(p.x-dx,p.y-dy)<=tr){collageItems.splice(i,1);redrawCollage();return;} if(p.x>=it.x+it.w-rh&&p.x<=it.x+it.w+rh&&p.y>=it.y+it.h-rh&&p.y<=it.y+it.h+rh){colResizeIdx=i;colResizeOX=p.x;colResizeOY=p.y;colResizeW=it.w;colResizeH=it.h;colDragIdx=-1;return;} if(p.x>=it.x&&p.x<=it.x+it.w&&p.y>=it.y&&p.y<=it.y+it.h){colDragIdx=i;colDragOX=p.x-it.x;colDragOY=p.y-it.y;collageItems.push(collageItems.splice(i,1)[0]);colDragIdx=collageItems.length-1;colResizeIdx=-1;return;} } colDragIdx=-1;colResizeIdx=-1; }
 function colMove(e){ const p=gp(e); const rh=rHandle(); if(colResizeIdx>=0){const it=collageItems[colResizeIdx];it.w=Math.max(60,colResizeW+(p.x-colResizeOX));it.h=Math.max(40,colResizeH+(p.y-colResizeOY));redrawCollage();return;} if(colDragIdx>=0){collageItems[colDragIdx].x=p.x-colDragOX;collageItems[colDragIdx].y=p.y-colDragOY;redrawCollage();} let onH=false; for(const it of collageItems){if(p.x>=it.x+it.w-rh&&p.x<=it.x+it.w+rh&&p.y>=it.y+it.h-rh&&p.y<=it.y+it.h+rh){onH=true;break;}} cv.style.cursor=onH?'nwse-resize':'default'; }
-function colUp(){ colDragIdx=-1; colResizeIdx=-1; }
+function colUp(){ colDragIdx=-1; colResizeIdx=-1; redrawCollage(); }
 function lockCollage(){
   collageMode=false; hist=[]; hi=-1; saveH();
   cv.onmousedown=startD; cv.onmousemove=moveD; cv.onmouseup=endD; cv.onmouseleave=endD;
@@ -1834,7 +1852,8 @@ function unlockCollage(){
 }
 
 function gp(e){ const r=cv.getBoundingClientRect(); const src=e.touches?e.touches[0]:e; return{x:(src.clientX-r.left)*cv.width/r.width,y:(src.clientY-r.top)*cv.height/r.height}; }
-function addTouch(el,down,move,up){ el.addEventListener('touchstart',e=>{e.preventDefault();down(e);},{passive:false}); el.addEventListener('touchmove',e=>{e.preventDefault();move(e);},{passive:false}); el.addEventListener('touchend',e=>{e.preventDefault();up(e);},{passive:false}); }
+const _touchMap=new WeakMap();
+function addTouch(el,down,move,up){ const old=_touchMap.get(el); if(old){el.removeEventListener('touchstart',old.d);el.removeEventListener('touchmove',old.m);el.removeEventListener('touchend',old.u);} const d=e=>{e.preventDefault();down(e);},m=e=>{e.preventDefault();move(e);},u=e=>{e.preventDefault();up(e);}; _touchMap.set(el,{d,m,u}); el.addEventListener('touchstart',d,{passive:false}); el.addEventListener('touchmove',m,{passive:false}); el.addEventListener('touchend',u,{passive:false}); }
 function startD(e){ if(tool==='text'){addTxt(e);return;} drawing=true; const p=gp(e); sx=p.x; sy=p.y; if(tool==='pen') penPts=[{x:sx,y:sy}]; }
 function snapCv(){ const t=document.createElement('canvas'); t.width=cv.width; t.height=cv.height; t.getContext('2d').drawImage(cv,0,0); return t; }
 function saveH(){ hist=hist.slice(0,hi+1); hist.push(snapCv()); if(hist.length>30)hist.shift(); hi=hist.length-1; }
@@ -1855,7 +1874,8 @@ function eSaveH(){ eHist=eHist.slice(0,eHi+1); eHist.push(eSnapCv()); if(eHist.l
 function eUndo(){ if(eHi>0){eHi--;ecx.clearRect(0,0,ecv.width,ecv.height);ecx.drawImage(eHist[eHi],0,0);} }
 function eRedo(){ if(eHi<eHist.length-1){eHi++;ecx.clearRect(0,0,ecv.width,ecv.height);ecx.drawImage(eHist[eHi],0,0);} }
 function egp(e){ const r=ecv.getBoundingClientRect(); const src=e.touches?e.touches[0]:e; return{x:(src.clientX-r.left)*ecv.width/r.width,y:(src.clientY-r.top)*ecv.height/r.height}; }
-function eAddTouch(el,down,move,up){ el.addEventListener('touchstart',e=>{e.preventDefault();down(e);},{passive:false}); el.addEventListener('touchmove',e=>{e.preventDefault();move(e);},{passive:false}); el.addEventListener('touchend',e=>{e.preventDefault();up(e);},{passive:false}); }
+const _eTouchMap=new WeakMap();
+function eAddTouch(el,down,move,up){ const old=_eTouchMap.get(el); if(old){el.removeEventListener('touchstart',old.d);el.removeEventListener('touchmove',old.m);el.removeEventListener('touchend',old.u);} const d=e=>{e.preventDefault();down(e);},m=e=>{e.preventDefault();move(e);},u=e=>{e.preventDefault();up(e);}; _eTouchMap.set(el,{d,m,u}); el.addEventListener('touchstart',d,{passive:false}); el.addEventListener('touchmove',m,{passive:false}); el.addEventListener('touchend',u,{passive:false}); }
 function eStartD(e){ if(eTool==='text'){eAddTxt(e);return;} eDrawing=true; const p=egp(e); eSx=p.x; eSy=p.y; if(eTool==='pen') ePenPts=[{x:eSx,y:eSy}]; }
 function eMoveD(e){
   if(!eDrawing)return; const p=egp(e); const snap=eHist[eHi]; if(!snap)return;

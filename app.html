@@ -1081,7 +1081,11 @@ function renderMdContent(){
           <h3 style="margin:0">${active.label} <span style="font-weight:400;color:#94a3b8;font-size:12px">${arr.length} รายการ</span></h3>
           ${!homeMdProj?'<div style="font-size:11px;color:#f59e0b;margin-top:3px">⚠ ดูรวมทุก project — เลือก project เพื่อแก้ไข</div>':'<div style="font-size:11px;color:#22c55e;margin-top:3px">✏ แก้ไข: '+esc(homeMdProj.name)+'</div>'}
         </div>
-        <button class="btn bp" style="padding:7px 14px;font-size:12px;opacity:${homeMdProj?1:0.4};cursor:${homeMdProj?'pointer':'not-allowed'}" onclick="${homeMdProj?'saveMasterData()':'void(0)'}" title="${homeMdProj?'บันทึก':'เลือก project ก่อนบันทึก'}">💾 บันทึก</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn" style="padding:7px 12px;font-size:12px;background:#f0fdf4;color:#15803d;border:1px solid #86efac" onclick="mdDownloadTemplate('${active.key}')" title="ดาวน์โหลด template">⬇ Template</button>
+          <button class="btn" style="padding:7px 12px;font-size:12px;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;opacity:${homeMdProj?1:0.4}" onclick="${homeMdProj?"mdOpenBulk('"+active.key+"')":'void(0)'}" title="นำเข้าหลายรายการ">📋 Bulk Add</button>
+          <button class="btn bp" style="padding:7px 14px;font-size:12px;opacity:${homeMdProj?1:0.4};cursor:${homeMdProj?'pointer':'not-allowed'}" onclick="${homeMdProj?'saveMasterData()':'void(0)'}" title="${homeMdProj?'บันทึก':'เลือก project ก่อนบันทึก'}">💾 บันทึก</button>
+        </div>
       </div>
       <!-- Filter -->
       <input class="fc" id="mdItemFilter" placeholder="🔍 ค้นหาใน ${active.label}..." style="margin-bottom:12px" value="${esc(filterVal)}" oninput="renderMdContent()">
@@ -1104,6 +1108,70 @@ function mdArr(key){ return key==='env'?homeMdEnvs:key==='mod'?homeMdMods:key===
 function mdUpdate(key,i,val){ mdArr(key)[i]=val; }
 function mdRemove(key,i){ mdArr(key).splice(i,1); renderMdContent(); document.getElementById('mdProjSel').value=homeMdProj?.id||''; }
 function mdAdd(key){ const inp=document.getElementById('mdinp-'+key); const v=inp.value.trim(); if(!v)return; mdArr(key).push(v); inp.value=''; renderMdContent(); document.getElementById('mdProjSel').value=homeMdProj?.id||''; }
+
+function mdKeyLabel(key){return{env:'Environment',mod:'Module',sev:'Severity',stat:'Status'}[key]||key;}
+function mdDownloadTemplate(key){
+  const label=mdKeyLabel(key);
+  const arr=mdArr(key);
+  const proj=homeMdProj?.name||'project';
+  const header=`# Template: ${label} — ${proj}\n# แต่ละบรรทัด = 1 รายการ (ลบบรรทัดที่ขึ้นต้น # ได้)\n\n`;
+  const body=arr.length?arr.join('\n'):`รายการ 1\nรายการ 2\nรายการ 3`;
+  const blob=new Blob([header+body],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`template_${key}_${proj.replace(/\s/g,'_')}.txt`;
+  a.click();
+}
+
+function mdOpenBulk(key){
+  const label=mdKeyLabel(key);
+  const cur=mdArr(key);
+  const existing=cur.join('\n');
+  const html=`<div class="mo open" id="bulkMo" style="z-index:8000" onclick="if(event.target===this)closeBulkMd()">
+    <div class="mb" style="max-width:520px;padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0">📋 Bulk Add — ${esc(label)}</h3>
+        <button onclick="closeBulkMd()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">✕</button>
+      </div>
+      <p style="font-size:12px;color:#64748b;margin-bottom:10px">วางรายการทีละบรรทัด หรือคั่นด้วย comma — รายการซ้ำจะถูกข้ามอัตโนมัติ</p>
+      <textarea id="bulkTa" style="width:100%;height:220px;font-size:13px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;line-height:1.8" placeholder="Doc Folder\nMeetings\nLive Translate\n...">${esc(existing)}</textarea>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn" style="padding:8px 14px;font-size:13px;background:#f1f5f9;color:#374151;border:1px solid #e2e8f0" onclick="closeBulkMd()">ยกเลิก</button>
+        <button class="btn" style="padding:8px 14px;font-size:13px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d" onclick="mdBulkReplace('${key}')">🔄 แทนที่ทั้งหมด</button>
+        <button class="btn bp" style="padding:8px 14px;font-size:13px" onclick="mdBulkAppend('${key}')">➕ เพิ่มต่อท้าย</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function closeBulkMd(){ document.getElementById('bulkMo')?.remove(); }
+
+function parseBulkInput(){
+  const raw=document.getElementById('bulkTa').value;
+  return raw.split(/[\n,]/).map(s=>s.trim()).filter(s=>s&&!s.startsWith('#'));
+}
+
+function mdBulkAppend(key){
+  const items=parseBulkInput();
+  const arr=mdArr(key);
+  let added=0;
+  items.forEach(v=>{ if(!arr.includes(v)){arr.push(v);added++;} });
+  closeBulkMd();
+  renderMdContent();
+  document.getElementById('mdProjSel').value=homeMdProj?.id||'';
+  toast(`เพิ่ม ${added} รายการ (ข้าม ${items.length-added} ซ้ำ)`,'ok');
+}
+
+function mdBulkReplace(key){
+  const items=parseBulkInput();
+  if(!items.length){toast('ไม่มีรายการ','err');return;}
+  const arr=mdArr(key); arr.length=0; items.forEach(v=>arr.push(v));
+  closeBulkMd();
+  renderMdContent();
+  document.getElementById('mdProjSel').value=homeMdProj?.id||'';
+  toast(`แทนที่ด้วย ${items.length} รายการแล้ว`,'ok');
+}
 
 async function saveMasterData(){
   if(!homeMdProj)return;

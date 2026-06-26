@@ -531,7 +531,10 @@ textarea.fc{resize:vertical}
   </div>
   <div class="g2s">
     <div class="fg"><label class="fl">Environment</label><select class="fc" id="bEnv"></select></div>
-    <div class="fg"><label class="fl">Module</label><input class="fc" id="bMod" list="bModList" placeholder="พิมพ์เพื่อค้นหา Module..." autocomplete="off"><datalist id="bModList"></datalist></div>
+    <div class="fg"><label class="fl">Module</label><div style="position:relative">
+      <input class="fc" id="bMod" placeholder="พิมพ์เพื่อค้นหา Module..." autocomplete="off" onfocus="openModPicker(this)" oninput="filterModList(this)" style="cursor:text">
+      <div id="bModDrop" style="display:none;position:absolute;z-index:9999;background:#fff;border:1px solid #d1d5db;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:220px;overflow-y:auto;width:100%;top:calc(100% + 4px);left:0"></div>
+    </div></div>
   </div>
   <div class="fg"><label class="fl">Feature</label><input class="fc" id="bFeat" placeholder="Login, Payment..."></div>
   <div class="fg"><label class="fl">Description *</label><textarea class="fc" id="bDesc" rows="4" style="min-height:100px" placeholder="อธิบาย bug..."></textarea></div>
@@ -1373,12 +1376,49 @@ function updateAppNavForRole(){
   else { btn.textContent='🚪 Logout'; btn.style.color='#ef4444'; btn.title='ออกจากระบบ'; }
 }
 
+// ── Custom Module Picker (works on iOS) ──
+function renderModDrop(dropId, items, inputId){
+  const drop=document.getElementById(dropId); if(!drop) return;
+  drop._items=items; drop._inputId=inputId;
+  drop.innerHTML=items.map((v,i)=>`<div style="padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid #f3f4f6" ontouchstart="this.style.background='#eff6ff'" ontouchend="this.style.background=''" onmouseenter="this.style.background='#f0f9ff'" onmouseleave="this.style.background=''" onclick="pickMod('${dropId}','${inputId}',${i})">${esc(v)}</div>`).join('');
+}
+function openModPicker(inp){
+  const drop=document.getElementById('bModDrop'); if(!drop) return;
+  drop.style.display='block';
+  renderModDrop('bModDrop', masterMods, 'bMod');
+}
+function filterModList(inp){
+  const q=(inp.value||'').toLowerCase();
+  const drop=document.getElementById('bModDrop'); if(!drop) return;
+  drop.style.display='block';
+  const filtered=masterMods.filter(v=>v.toLowerCase().includes(q));
+  drop.innerHTML=filtered.length
+    ? filtered.map((v,i)=>`<div style="padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid #f3f4f6" onmouseenter="this.style.background='#f0f9ff'" onmouseleave="this.style.background=''" onclick="pickModVal('bModDrop','bMod','${esc(v)}')">${esc(v)}</div>`).join('')
+    : '<div style="padding:10px 14px;font-size:13px;color:#94a3b8">ไม่พบ module</div>';
+}
+function pickMod(dropId, inputId, idx){
+  const drop=document.getElementById(dropId);
+  const inp=document.getElementById(inputId);
+  if(inp && drop._items) inp.value=drop._items[idx]||'';
+  closeAllModDrops();
+}
+function pickModVal(dropId, inputId, val){
+  const inp=document.getElementById(inputId);
+  if(inp) inp.value=val;
+  closeAllModDrops();
+}
+function closeAllModDrops(){
+  document.querySelectorAll('[id$="ModDrop"]').forEach(d=>d.style.display='none');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('[id$="ModDrop"]')&&!e.target.matches('#bMod')) closeAllModDrops();
+});
+
 function populateDropdowns(){
   const envEl=document.getElementById('bEnv');
   const modEl=document.getElementById('bMod');
   if(envEl) envEl.innerHTML=masterEnvs.map(v=>`<option>${esc(v)}</option>`).join('');
-  const modList=document.getElementById('bModList');
-  if(modList) modList.innerHTML=masterMods.map(v=>`<option value="${esc(v)}">`).join('');
+  renderModDrop('bModDrop', masterMods, 'bMod');
   const fsev=document.getElementById('fsev');
   if(fsev) fsev.innerHTML='<option value="">All Severity</option>'+masterSevs.map(v=>`<option value="${v}">${v}</option>`).join('');
   const fst=document.getElementById('fst');

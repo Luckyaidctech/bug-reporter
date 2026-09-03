@@ -1722,10 +1722,10 @@ async function submitBug(){
   if(gotCap){
     try{
       const tmp=document.createElement('canvas');
-      const maxW=2560, scale=cv.width>maxW?maxW/cv.width:1;
+      const maxW=1920, scale=cv.width>maxW?maxW/cv.width:1;
       tmp.width=Math.round(cv.width*scale); tmp.height=Math.round(cv.height*scale);
       tmp.getContext('2d').drawImage(cv,0,0,tmp.width,tmp.height);
-      const base64=tmp.toDataURL('image/jpeg',.95).replace(/^data:image\/\w+;base64,/,'');
+      const base64=tmp.toDataURL('image/jpeg',.85).replace(/^data:image\/\w+;base64,/,'');
       const fd=new FormData(); fd.append('key',IMGBB_KEY); fd.append('image',base64);
       const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
       const j=await r.json(); if(j.success) imageUrl=j.data.url;
@@ -1970,7 +1970,7 @@ async function saveEditBug(){
   let imageUrl=b.screenshot||'';
   if(eGotCap){
     try{
-      const base64=ecv.toDataURL('image/jpeg',.95).replace(/^data:image\/\w+;base64,/,'');
+      const base64=ecv.toDataURL('image/jpeg',.85).replace(/^data:image\/\w+;base64,/,'');
       const fd=new FormData(); fd.append('key',IMGBB_KEY); fd.append('image',base64);
       const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
       const j=await r.json(); if(j.success) imageUrl=j.data.url;
@@ -2381,7 +2381,7 @@ async function doAdminSubmitBug(){
   let imageUrl='';
   if(eGotCap&&ecv){
     try{
-      const base64=ecv.toDataURL('image/jpeg',.95).replace(/^data:image\/\w+;base64,/,'');
+      const base64=ecv.toDataURL('image/jpeg',.85).replace(/^data:image\/\w+;base64,/,'');
       const fd=new FormData(); fd.append('key',IMGBB_KEY); fd.append('image',base64);
       const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
       const j=await r.json(); if(j.success) imageUrl=j.data.url;

@@ -345,6 +345,7 @@ textarea.fc{resize:vertical}
     <button class="sb-item" id="snav-users" onclick="switchHome('users')" style="display:none"><span class="icon">👥</span> Users</button>
     <a id="snav-msheet" href="#" target="_blank" class="sb-item" style="display:none;text-decoration:none;color:#4ade80;font-weight:700" onclick="return openMasterSheet(event)"><span class="icon">📊</span> Master Sheet</a>
     <button class="sb-item" id="snav-report" onclick="doGenerateReport()" style="display:none;color:#f59e0b;font-weight:700"><span class="icon">📈</span> Generate Report</button>
+    <button class="sb-item" id="snav-syslinks" onclick="switchHome('syslinks')" style="display:none"><span class="icon">🔗</span> System Links</button>
   </div>
   <div class="sb-footer">
     <button class="sb-item logout" onclick="doLogout()"><span class="icon">🚪</span> ออกจากระบบ</button>
@@ -421,6 +422,15 @@ textarea.fc{resize:vertical}
       <button class="btn bp" onclick="showAddUser()">+ New User</button>
     </div>
     <div class="main-body" id="usersContent"></div>
+  </div>
+
+  <!-- SYSTEM LINKS TAB -->
+  <div class="tab-content" id="ht-syslinks">
+    <div class="main-header">
+      <div><h1>🔗 System Links</h1><p>URL + บัญชีผู้ใช้ของแต่ละระบบ</p></div>
+      <button class="btn bp" onclick="showAddSysLink()">+ เพิ่มระบบ</button>
+    </div>
+    <div class="main-body" id="syslinksContent"></div>
   </div>
 
 </div><!-- main-content -->
@@ -735,6 +745,7 @@ async function loadHome(){
     document.getElementById('snav-allbugs').style.display='';
     document.getElementById('addProjBtn').style.display='';
     document.getElementById('snav-report').style.display='';
+    document.getElementById('snav-syslinks').style.display='';
     const ms=document.getElementById('snav-msheet');
     ms.style.display='';
     const MASTER_SHEET='https://docs.google.com/spreadsheets/d/1qk5q30sMOBkZqReFBkhP3l3uXsMAxeSvgvaFTY5QzhQ/edit';
@@ -766,13 +777,14 @@ async function loadHome(){
 }
 
 function switchHome(tab){
-  ['projects','master','users','allbugs'].forEach(t=>{
+  ['projects','master','users','allbugs','syslinks'].forEach(t=>{
     document.getElementById('ht-'+t)?.classList.toggle('active',t===tab);
     document.getElementById('snav-'+t)?.classList.toggle('on',t===tab);
   });
   if(tab==='users') loadUsersTab();
   if(tab==='master') loadMasterTab();
   if(tab==='allbugs') loadHomeAllBugs();
+  if(tab==='syslinks') loadSysLinks();
 }
 
 async function loadProjects(){
@@ -1435,6 +1447,104 @@ function switchAppTab(name){
   localStorage.setItem('lastTab',name);
 }
 
+// ════════════════════════════════════════════════════════════
+// SYSTEM LINKS
+// ════════════════════════════════════════════════════════════
+async function loadSysLinks(){
+  const el=document.getElementById('syslinksContent');
+  el.innerHTML='<div style="padding:40px;text-align:center;color:#94a3b8"><span class="spin" style="border-top-color:#1e40af;border-color:rgba(30,64,175,.3)"></span></div>';
+  const res=await api('get_syslinks');
+  const links=res.links||[];
+  if(!links.length){
+    el.innerHTML='<div style="padding:60px;text-align:center;color:#94a3b8;font-size:14px">ยังไม่มีระบบ — กด "+ เพิ่มระบบ"</div>';
+    return;
+  }
+  el.innerHTML=`<div style="display:grid;gap:14px;max-width:900px">
+    ${links.map(l=>`
+    <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:4px">${esc(l.name)}</div>
+        <a href="${esc(l.url)}" target="_blank" style="font-size:12px;color:#2563eb;word-break:break-all">${esc(l.url)}</a>
+        ${l.note?`<div style="font-size:12px;color:#64748b;margin-top:4px">${esc(l.note)}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:200px">
+        ${l.username?`<div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="color:#64748b;width:72px;flex-shrink:0">Username</span>
+          <span style="font-family:monospace;background:#f1f5f9;padding:3px 8px;border-radius:6px;flex:1">${esc(l.username)}</span>
+          <button onclick="copyTxt('${esc(l.username)}')" style="border:none;background:none;cursor:pointer;font-size:14px" title="Copy">📋</button>
+        </div>`:''}
+        ${l.password?`<div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="color:#64748b;width:72px;flex-shrink:0">Password</span>
+          <span id="pw-${esc(l.id)}" style="font-family:monospace;background:#f1f5f9;padding:3px 8px;border-radius:6px;flex:1;letter-spacing:3px">••••••••</span>
+          <button onclick="togglePw('${esc(l.id)}','${esc(l.password)}')" style="border:none;background:none;cursor:pointer;font-size:14px" title="Show">👁</button>
+          <button onclick="copyTxt('${esc(l.password)}')" style="border:none;background:none;cursor:pointer;font-size:14px" title="Copy">📋</button>
+        </div>`:''}
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn bs" style="font-size:12px;padding:6px 14px" onclick="showEditSysLink(${JSON.stringify(l).replace(/"/g,'&quot;')})">✏ Edit</button>
+        <button class="btn bd" style="font-size:12px;padding:6px 14px" onclick="deleteSysLink('${esc(l.id)}')">🗑</button>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function togglePw(id, pw){
+  const el=document.getElementById('pw-'+id); if(!el) return;
+  el.textContent=el.textContent.includes('•')?pw:'••••••••';
+}
+function copyTxt(txt){
+  navigator.clipboard?.writeText(txt).then(()=>toast('คัดลอกแล้ว ✓','ok')).catch(()=>{});
+}
+
+function showAddSysLink(){
+  showSysLinkModal({id:'',name:'',url:'',username:'',password:'',note:''});
+}
+function showEditSysLink(l){
+  showSysLinkModal(l);
+}
+function showSysLinkModal(l){
+  document.getElementById('bugM')?.classList.remove('open');
+  const isEdit=!!l.id;
+  const mo=document.createElement('div');
+  mo.className='mo open'; mo.id='slMo'; mo.style.zIndex='8000';
+  mo.innerHTML=`<div class="mb" style="max-width:500px;width:95vw">
+    <div class="mh"><span>${isEdit?'✏ แก้ไข':'+ เพิ่ม'} System Link</span><button class="mc" onclick="document.getElementById('slMo').remove()">✕</button></div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+      <div class="fg"><label class="fl">ชื่อระบบ *</label><input class="fc" id="sl-name" value="${esc(l.name)}" placeholder="เช่น Magic Budget UAT"></div>
+      <div class="fg"><label class="fl">URL *</label><input class="fc" id="sl-url" value="${esc(l.url)}" placeholder="https://..."></div>
+      <div class="fg"><label class="fl">Username</label><input class="fc" id="sl-user" value="${esc(l.username)}" placeholder="admin"></div>
+      <div class="fg"><label class="fl">Password</label><div style="position:relative"><input class="fc" id="sl-pass" type="password" value="${esc(l.password)}" placeholder="••••••••" style="padding-right:40px"><button onclick="var i=document.getElementById('sl-pass');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:16px">👁</button></div></div>
+      <div class="fg"><label class="fl">หมายเหตุ</label><input class="fc" id="sl-note" value="${esc(l.note||'')}" placeholder="เช่น ใช้สำหรับ test เท่านั้น"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn bp" style="flex:1;padding:11px" onclick="saveSysLink('${esc(l.id)}')">💾 บันทึก</button>
+        <button class="btn bs" style="padding:11px 18px" onclick="document.getElementById('slMo').remove()">ยกเลิก</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+}
+
+async function saveSysLink(id){
+  const name=document.getElementById('sl-name').value.trim();
+  const url=document.getElementById('sl-url').value.trim();
+  if(!name||!url){toast('กรุณาใส่ชื่อระบบและ URL','error');return;}
+  const data={name,url,username:document.getElementById('sl-user').value.trim(),password:document.getElementById('sl-pass').value,note:document.getElementById('sl-note').value.trim()};
+  if(id) data.id=id;
+  const res=await api(id?'update_syslink':'create_syslink',data);
+  if(res.success){
+    toast('บันทึกแล้ว ✓','ok');
+    document.getElementById('slMo')?.remove();
+    loadSysLinks();
+  } else toast(res.error||'เกิดข้อผิดพลาด','error');
+}
+
+async function deleteSysLink(id){
+  if(!confirm('ลบ System Link นี้?')) return;
+  const res=await api('delete_syslink',{id});
+  if(res.success){toast('ลบแล้ว','ok');loadSysLinks();}
+  else toast(res.error||'ลบไม่ได้','error');
+}
+
 async function doGenerateReport(){
   const sess=getSession();
   if(!sess||sess.role!=='admin'){toast('เฉพาะ Admin เท่านั้น','error');return;}
@@ -1678,7 +1788,7 @@ function renderBugView(){
     <!-- body: LEFT (image+desc+steps) | RIGHT (details) — matches backup -->
     <div class="g2">
       <div>
-        ${b.screenshot?`<div style="background:#f1f5f9;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;cursor:zoom-in;text-align:center" onclick="openLb('${esc(b.screenshot)}')"><img src="${esc(b.screenshot)}" style="width:100%;height:auto;display:block;border-radius:8px" loading="lazy"><div style="font-size:11px;color:#94a3b8;padding:4px 0 6px">แตะเพื่อขยาย 🔍</div></div>`:
+        ${b.screenshot?`<a href="${esc(b.screenshot)}" target="_blank" style="display:block;text-decoration:none"><div style="background:#f1f5f9;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;cursor:pointer;text-align:center"><img src="${esc(b.screenshot)}" style="width:100%;height:auto;display:block;border-radius:8px" loading="lazy"><div style="font-size:11px;color:#94a3b8;padding:4px 0 6px">แตะเพื่อเปิดรูปเต็ม ↗</div></div></a>`:
           '<div style="height:300px;background:#f8fafc;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;color:#94a3b8">ไม่มี screenshot</div>'}
         ${b.description?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Description</div><p style="font-size:13px;line-height:1.7;white-space:pre-wrap;margin:0">${esc(b.description)}</p></div>`:''}
         ${b.steps?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Steps to Reproduce</div><pre style="font-size:12px;background:#f8fafc;padding:11px;border-radius:7px;white-space:pre-wrap;line-height:1.7;margin:0">${esc(b.steps)}</pre></div>`:''}

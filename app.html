@@ -2127,7 +2127,9 @@ function toggleCollage(){
 function startBlankCollage(){
   collageMode=true; collageItems=[];
   const isMob=window.innerWidth<=768;
-  cv.width=isMob?Math.min(window.innerWidth-32,600):900; cv.height=isMob?400:500;
+  const dw=isMob?Math.min(window.innerWidth-32,600):900, dh=isMob?400:500;
+  cv.width=dw*2; cv.height=dh*2;
+  cv.style.width=dw+'px'; cv.style.height=dh+'px';
   cx.fillStyle='#f1f5f9'; cx.fillRect(0,0,cv.width,cv.height);
   cv.style.display='block'; document.getElementById('cph').style.display='none';
   document.getElementById('capArea').classList.add('has');
@@ -2251,8 +2253,10 @@ function eSetColor(c,el){ eColor=c; document.querySelectorAll('#eTb .ecol').forE
 function eStartBlankCollage(){
   eCollageMode=true; eCollageItems=[];
   const area=document.getElementById('eCapArea');
-  const w=Math.max((area?.clientWidth||620)-20,600);
-  ecv.width=w; ecv.height=Math.round(w*0.65);
+  const dw=Math.max((area?.clientWidth||620)-20,600);
+  const dh=Math.round(dw*0.65);
+  ecv.width=dw*2; ecv.height=dh*2;
+  ecv.style.width=dw+'px'; ecv.style.height=dh+'px';
   eRedrawCollage();
   eGotCap=true; ecv.style.display='block';
   document.getElementById('eCph').style.display='none';

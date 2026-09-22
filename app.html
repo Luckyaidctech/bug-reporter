@@ -159,7 +159,7 @@ textarea.fc{resize:vertical}
 .av{width:26px;height:26px;border-radius:7px;background:#1e40af;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 /* ===== DASHBOARD LIST VIEW ===== */
 #bgrid.blist{display:block;background:#fff;border-radius:14px;border:1.5px solid #e5e7eb;overflow-x:auto;box-shadow:0 1px 2px rgba(15,23,42,.04)}
-.brow{display:grid;grid-template-columns:32px 60px minmax(260px,1fr) 100px 116px 92px 148px 168px;gap:16px;align-items:center;padding:15px 20px;border-bottom:1px solid #f1f5f9;cursor:pointer;min-width:1224px;transition:background .12s}
+.brow{display:grid;grid-template-columns:32px 60px minmax(260px,1fr) 100px 116px 92px 132px 130px;gap:16px;align-items:center;padding:15px 20px;border-bottom:1px solid #f1f5f9;cursor:pointer;min-width:1188px;transition:background .12s}
 .brow:last-child{border-bottom:none}
 .brow:hover{background:#f8fafc}
 .brow.bhead{background:#f8fafc;cursor:default;font-size:10.5px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;padding-top:12px;padding-bottom:12px}
@@ -169,8 +169,8 @@ textarea.fc{resize:vertical}
 .bthumb-img img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 a.bthumb-img:hover{box-shadow:0 0 0 2px #bfdbfe}
 .modchip{display:inline-block;padding:4px 11px;border-radius:20px;font-size:10.5px;font-weight:700;background:#eef2ff;color:#4338ca;white-space:nowrap}
-select.stsel{border:none;border-radius:20px;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer;font-family:inherit;text-transform:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
-select.assel{border-radius:20px;font-size:11px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit;transition:all .12s}
+select.stsel{width:100%;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:none;border-radius:20px;font-size:11px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit;text-transform:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+select.assel{width:100%;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:20px;font-size:10.5px;font-weight:600;padding:6px 10px;cursor:pointer;font-family:inherit;transition:all .12s}
 select.assel.assel-off{border:1.5px dashed #cbd5e1;background:#fff;color:#94a3b8;font-style:italic}
 select.assel.assel-off:hover{border-color:#94a3b8;color:#64748b}
 select.assel.assel-on{border:1.5px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-weight:700}
@@ -586,6 +586,7 @@ select.assel.assel-on{border:1.5px solid #bfdbfe;background:#eff6ff;color:#1d4ed
     <select class="fc" id="fst" onchange="render()"><option value="">All Status</option></select>
     <select class="fc" id="frep" onchange="render()"><option value="">All Reporter</option></select>
     <select class="fc" id="fmod" onchange="render()"><option value="">All Module</option></select>
+    <select class="fc" id="fasg" onchange="render()"><option value="">All Assigned To</option></select>
     <div class="fbar-dates">
       <input class="fc" type="date" id="fdateFrom" onchange="render()">
       <input class="fc" type="date" id="fdateTo" onchange="render()">
@@ -1618,7 +1619,10 @@ function openSheetLink(e){
 function normBug(b){ return {id:b.ID||b.id,title:b.Title||b.title,severity:(b.Severity||b.severity||'medium').toLowerCase(),status:(b.Status||b.status||'open').toLowerCase().replace(/ /g,'_'),module:b.Module||b.module||'',feature:b.Feature||b.feature||'',environment:b.Environment||b.environment||'',reporter:b.Reporter||b.reporter||'',description:b.Description||b.description||'',steps:b.Steps||b.steps||'',createdAt:b.CreatedAt||b.createdAt||'',screenshot:b.ImageURL||b.imageUrl||b.screenshot||'',assignee:b.Assignee||b.assignee||'',_project:b._project||'',_projectId:b._projectId||''}; }
 function fdateDMY(s){ if(!s)return''; try{ const d=new Date(s); if(isNaN(d))return s; return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }catch(e){return s;} }
 const AV_PALETTE=['#1e40af','#7c3aed','#0ea5e9','#16a34a','#d97706','#dc2626','#0891b2','#db2777','#4338ca','#059669'];
-function avColor(name){ const s=(name||'?').trim()||'?'; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return AV_PALETTE[h%AV_PALETTE.length]; }
+const AV_PALETTE_BG=['#eff6ff','#f5f3ff','#e0f2fe','#f0fdf4','#fffbeb','#fef2f2','#ecfeff','#fdf2f8','#eef2ff','#ecfdf5'];
+function avIdx(name){ const s=(name||'?').trim()||'?'; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h%AV_PALETTE.length; }
+function avColor(name){ return AV_PALETTE[avIdx(name)]; }
+function avBg(name){ return AV_PALETTE_BG[avIdx(name)]; }
 
 async function loadBugs(){
   showLoading(true);
@@ -1661,6 +1665,7 @@ function render(){
   const ss=document.getElementById('fst')?.value||'';
   const sr=document.getElementById('frep')?.value||'';
   const sm=document.getElementById('fmod')?.value||'';
+  const sa=document.getElementById('fasg')?.value||'';
   const sp=document.getElementById('fproj')?.value||'';
   const sdFrom=document.getElementById('fdateFrom')?.value||'';
   const sdTo=document.getElementById('fdateTo')?.value||'';
@@ -1670,6 +1675,7 @@ function render(){
     if(ss&&b.status!==ss) return false;
     if(sr&&b.reporter!==sr) return false;
     if(sm&&(b.module||'').toUpperCase()!==sm.toUpperCase()) return false;
+    if(sa&&(sa==='__unassigned__'?b.assignee:b.assignee!==sa)) return false;
     if(sp&&(b._project||b._projectId||'')!==sp) return false;
     if(sdFrom||sdTo){ const d=(b.createdAt||'').slice(0,10); if(sdFrom&&d<sdFrom)return false; if(sdTo&&d>sdTo)return false; }
     return true;
@@ -1699,7 +1705,7 @@ function render(){
           <div style="display:flex;align-items:center;gap:6px;overflow:hidden"><div class="av" style="background:${avColor(b.reporter)}">${(b.reporter||'?').slice(0,2).toUpperCase()}</div><span style="font-size:11.5px;color:#475569;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(b.reporter||'')}</span></div>
           <div style="font-size:11.5px;color:#64748b;font-weight:500">${fdateDMY(b.createdAt)}</div>
           <select class="stsel stbadge ${b.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateStatus('${b.id}',this.value)">${stOpts}</select>
-          <select class="assel ${b.assignee?'assel-on':'assel-off'}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateAssignee('${b.id}',this.value,'${b._projectId||currentProject?.id||''}')">${asgOpts}</select>
+          <select class="assel ${b.assignee?'assel-on':'assel-off'}" style="${b.assignee?`background:${avBg(b.assignee)};border-color:${avColor(b.assignee)}66;color:${avColor(b.assignee)}`:''}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateAssignee('${b.id}',this.value,'${b._projectId||currentProject?.id||''}')">${asgOpts}</select>
         </div>`;
       }).join('');
     return;
@@ -1765,6 +1771,12 @@ function renderRepFilter(){
   const fr=document.getElementById('frep');
   const names=[...new Set(bugs.map(b=>b.reporter).filter(Boolean))];
   fr.innerHTML='<option value="">All Reporter</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');
+  const fa=document.getElementById('fasg');
+  if(fa){
+    const asgNames=[...new Set(bugs.map(b=>b.assignee).filter(Boolean))];
+    const hasUnassigned=bugs.some(b=>!b.assignee);
+    fa.innerHTML='<option value="">All Assigned To</option>'+(hasUnassigned?'<option value="__unassigned__">— ยังไม่มอบหมาย —</option>':'')+asgNames.map(n=>`<option>${esc(n)}</option>`).join('');
+  }
 }
 
 function clearF(){ ['fs','fsev','fst','frep','fmod','fproj','fdateFrom','fdateTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); render(); }

@@ -170,7 +170,7 @@ textarea.fc{resize:vertical}
 a.bthumb-img:hover{box-shadow:0 0 0 2px #bfdbfe}
 .modchip{display:inline-block;padding:4px 11px;border-radius:20px;font-size:10.5px;font-weight:700;background:#eef2ff;color:#4338ca;white-space:nowrap}
 select.stsel{box-sizing:border-box;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:none;border-radius:20px;font-size:10.5px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit;text-transform:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
-select.assel{box-sizing:border-box;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:20px;font-size:10px;font-weight:600;padding:5px 8px;cursor:pointer;font-family:inherit;transition:all .12s}
+select.assel{box-sizing:border-box;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:20px;font-size:10.5px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit;transition:all .12s}
 select.assel.assel-off{border:1.5px dashed #cbd5e1;background:#fff;color:#94a3b8;font-style:italic}
 select.assel.assel-off:hover{border-color:#94a3b8;color:#64748b}
 select.assel.assel-on{border:1.5px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-weight:700}
@@ -1721,7 +1721,7 @@ function render(){
           <div style="display:flex;align-items:center;gap:6px;overflow:hidden"><div class="av" style="background:${avColor(b.reporter)}">${(b.reporter||'?').slice(0,2).toUpperCase()}</div><span style="font-size:11.5px;color:#475569;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(b.reporter||'')}</span></div>
           <div style="font-size:11.5px;color:#64748b;font-weight:500">${fdateDMY(b.createdAt)}</div>
           <select class="stsel stbadge ${b.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateStatus('${b.id}',this.value)">${stOpts}</select>
-          <select class="assel ${b.assignee?'assel-on':'assel-off'}" style="${b.assignee?`background:${avBg(b.assignee)};border-color:${avColor(b.assignee)}66;color:${avColor(b.assignee)}`:''}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateAssignee('${b.id}',this.value,'${b._projectId||currentProject?.id||''}')">${asgOpts}</select>
+          <select class="assel ${b.assignee?'assel-on':'assel-off'}" style="${b.assignee?`background:${avColor(b.assignee)};border:1.5px solid ${avColor(b.assignee)};color:#fff`:''}" onclick="event.stopPropagation()" onchange="event.stopPropagation();updateAssignee('${b.id}',this.value,'${b._projectId||currentProject?.id||''}')">${asgOpts}</select>
         </div>`;
       }).join('');
     return;

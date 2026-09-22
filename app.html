@@ -159,7 +159,7 @@ textarea.fc{resize:vertical}
 .av{width:26px;height:26px;border-radius:7px;background:#1e40af;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 /* ===== DASHBOARD LIST VIEW ===== */
 #bgrid.blist{display:block;background:#fff;border-radius:14px;border:1.5px solid #e5e7eb;overflow-x:auto;box-shadow:0 1px 2px rgba(15,23,42,.04)}
-.brow{display:grid;grid-template-columns:32px 60px minmax(260px,1fr) 100px 116px 92px 132px 130px;gap:16px;align-items:center;padding:15px 20px;border-bottom:1px solid #f1f5f9;cursor:pointer;min-width:1188px;transition:background .12s}
+.brow{display:grid;grid-template-columns:32px 60px minmax(260px,1fr) 96px 112px 88px 112px 104px;gap:14px;align-items:center;padding:15px 20px;border-bottom:1px solid #f1f5f9;cursor:pointer;min-width:1140px;transition:background .12s}
 .brow:last-child{border-bottom:none}
 .brow:hover{background:#f8fafc}
 .brow.bhead{background:#f8fafc;cursor:default;font-size:10.5px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;padding-top:12px;padding-bottom:12px}
@@ -169,8 +169,8 @@ textarea.fc{resize:vertical}
 .bthumb-img img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 a.bthumb-img:hover{box-shadow:0 0 0 2px #bfdbfe}
 .modchip{display:inline-block;padding:4px 11px;border-radius:20px;font-size:10.5px;font-weight:700;background:#eef2ff;color:#4338ca;white-space:nowrap}
-select.stsel{width:100%;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:none;border-radius:20px;font-size:11px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit;text-transform:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
-select.assel{width:100%;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:20px;font-size:10.5px;font-weight:600;padding:6px 10px;cursor:pointer;font-family:inherit;transition:all .12s}
+select.stsel{box-sizing:border-box;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:none;border-radius:20px;font-size:10.5px;font-weight:700;padding:5px 8px;cursor:pointer;font-family:inherit;text-transform:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+select.assel{box-sizing:border-box;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:20px;font-size:10px;font-weight:600;padding:5px 8px;cursor:pointer;font-family:inherit;transition:all .12s}
 select.assel.assel-off{border:1.5px dashed #cbd5e1;background:#fff;color:#94a3b8;font-style:italic}
 select.assel.assel-off:hover{border-color:#94a3b8;color:#64748b}
 select.assel.assel-on{border:1.5px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-weight:700}
@@ -1623,6 +1623,11 @@ const AV_PALETTE_BG=['#eff6ff','#f5f3ff','#e0f2fe','#f0fdf4','#fffbeb','#fef2f2'
 function avIdx(name){ const s=(name||'?').trim()||'?'; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h%AV_PALETTE.length; }
 function avColor(name){ return AV_PALETTE[avIdx(name)]; }
 function avBg(name){ return AV_PALETTE_BG[avIdx(name)]; }
+function asgOptionsHtml(b){
+  const asgList=(allProjects.find(p=>p.id===(b._projectId||currentProject?.id))?.assignees)||masterAssignees;
+  const asgFull=b.assignee&&!asgList.includes(b.assignee)?[...asgList,b.assignee]:asgList;
+  return '<option value=""'+(b.assignee?'':' selected')+'>— ยังไม่มอบหมาย —</option>'+asgFull.map(a=>`<option ${b.assignee===a?'selected':''}>${esc(a)}</option>`).join('');
+}
 
 async function loadBugs(){
   showLoading(true);
@@ -1691,8 +1696,7 @@ function render(){
       + f.map((b,i)=>{
         const img=b.screenshot?`<a href="${esc(b.screenshot)}" target="_blank" onclick="event.stopPropagation()" title="เปิดรูปเต็ม ↗" class="bthumb bthumb-img"><img src="${esc(b.screenshot)}" loading="lazy" onerror="this.parentElement.outerHTML='<div class=&quot;bthumb bnimg&quot;>—</div>'"></a>`:'<div class="bthumb bnimg">—</div>';
         const stOpts=masterStats.map(s=>`<option value="${s}" ${b.status===s?'selected':''}>${s.replace(/_/g,' ')}</option>`).join('');
-        const asgList=(allProjects.find(p=>p.id===(b._projectId||currentProject?.id))?.assignees)||masterAssignees;
-        const asgOpts='<option value=""'+(b.assignee?'':' selected')+'>— ยังไม่มอบหมาย —</option>'+asgList.map(a=>`<option ${b.assignee===a?'selected':''}>${esc(a)}</option>`).join('');
+        const asgOpts=asgOptionsHtml(b);
         return `<div class="brow" onclick="openBug('${b.id}')">
           <div style="color:#cbd5e1;font-weight:700;font-size:13px">${i+1}</div>
           <div>${img}</div>
@@ -1903,7 +1907,7 @@ function renderBugView(){
     <!-- footer: status + actions -->
     <div style="display:flex;align-items:center;gap:8px;padding-top:14px;margin-top:16px;border-top:1px solid #e5e7eb;flex-wrap:wrap">
       <select class="fc" style="width:150px;font-size:13px" onchange="updateStatus('${b.id}',this.value)">${statOpts}</select>
-      <select class="fc" style="width:170px;font-size:13px" onchange="updateAssignee('${b.id}',this.value,'${b._projectId||currentProject?.id||''}')"><option value=""${b.assignee?'':' selected'}>— ยังไม่มอบหมาย —</option>${((allProjects.find(p=>p.id===(b._projectId||currentProject?.id))?.assignees)||masterAssignees).map(a=>`<option ${b.assignee===a?'selected':''}>${esc(a)}</option>`).join('')}</select>
+      <select class="fc" style="width:170px;font-size:13px" onchange="updateAssignee('${b.id}',this.value,'${b._projectId||currentProject?.id||''}')">${asgOptionsHtml(b)}</select>
       <button class="btn bp" style="font-size:13px;padding:8px 18px" onclick="toggleEditMode()">✏ Edit</button>
       <button class="btn bd" style="font-size:13px;padding:8px 18px" onclick="deleteBug('${b.id}')">🗑 Delete</button>
       <button class="btn bs" style="font-size:13px;padding:8px 18px;margin-left:auto" onclick="closeBug()">Close</button>
@@ -2046,7 +2050,7 @@ function renderBugEdit(){
       <div class="fg"><label class="fl">Module</label><select class="fc" id="eMod">${modOpts}</select></div>
     </div>
     <div class="fg"><label class="fl">Feature</label><input class="fc" id="eFeat" value="${esc(b.feature||'')}"></div>
-    <div class="fg" style="border-left:3px solid #7c3aed;padding-left:10px"><label class="fl" style="color:#581c87">Assigned To</label><select class="fc" id="eAsg" style="border-color:#c4b5fd"><option value=""${b.assignee?'':' selected'}>— ยังไม่มอบหมาย —</option>${((allProjects.find(p=>p.id===(b._projectId||currentProject?.id))?.assignees)||masterAssignees).map(a=>`<option ${b.assignee===a?'selected':''}>${esc(a)}</option>`).join('')}</select></div>
+    <div class="fg" style="border-left:3px solid #7c3aed;padding-left:10px"><label class="fl" style="color:#581c87">Assigned To</label><select class="fc" id="eAsg" style="border-color:#c4b5fd">${asgOptionsHtml(b)}</select></div>
     <div class="fg"><label class="fl">Description *</label><textarea class="fc" id="eDesc" rows="4" style="min-height:100px">${esc(b.description||'')}</textarea></div>
     <div class="fg"><label class="fl">Steps to Reproduce</label><textarea class="fc" id="eSteps" rows="3" style="min-height:80px">${esc(b.steps||'')}</textarea></div>
     <div style="display:flex;gap:8px;margin-top:12px">

@@ -1810,6 +1810,7 @@ async function updateAssignee(id,assignee,projectId){
   if(j.success||j.ok){
     const b=bugs.find(x=>x.id===id); if(b)b.assignee=assignee;
     if(_viewBug?.id===id){_viewBug.assignee=assignee; if(!editMode)renderBugView();}
+    render();
     toast('อัปเดตแล้ว','ok');
   } else toast('อัปเดตไม่สำเร็จ','err');
 }

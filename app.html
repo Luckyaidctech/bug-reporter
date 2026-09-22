@@ -174,6 +174,7 @@ select.assel{box-sizing:border-box;width:100%;overflow:hidden;text-overflow:elli
 select.assel.assel-off{border:1.5px dashed #cbd5e1;background:#fff;color:#94a3b8;font-style:italic}
 select.assel.assel-off:hover{border-color:#94a3b8;color:#64748b}
 select.assel.assel-on{border:1.5px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-weight:700}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
 .delbtn{position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:6px;background:rgba(239,68,68,.9);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
 .bc:hover .delbtn{opacity:1}
 
@@ -580,16 +581,16 @@ select.assel.assel-on{border:1.5px solid #bfdbfe;background:#eff6ff;color:#1d4ed
 <div class="tab-content" id="tc-dashboard">
   <div class="stat-grid" id="srow"></div>
   <div class="fbar">
-    <input class="fc fbar-search" id="fs" placeholder="🔍 ค้นหา..." oninput="render()">
-    <select class="fc" id="fproj" onchange="render()" style="display:none"><option value="">All Projects</option></select>
-    <select class="fc" id="fsev" onchange="render()"><option value="">All Severity</option></select>
-    <select class="fc" id="fst" onchange="render()"><option value="">All Status</option></select>
-    <select class="fc" id="frep" onchange="render()"><option value="">All Reporter</option></select>
-    <select class="fc" id="fmod" onchange="render()"><option value="">All Module</option></select>
-    <select class="fc" id="fasg" onchange="render()"><option value="">All Assigned To</option></select>
+    <input class="fc fbar-search" id="fs" placeholder="🔍 ค้นหา..." oninput="applyFiltersAndRender()">
+    <select class="fc" id="fproj" onchange="applyFiltersAndRender()" style="display:none"><option value="">All Projects</option></select>
+    <select class="fc" id="fsev" onchange="applyFiltersAndRender()"><option value="">All Severity</option></select>
+    <select class="fc" id="fst" onchange="applyFiltersAndRender()"><option value="">All Status</option></select>
+    <select class="fc" id="frep" onchange="applyFiltersAndRender()"><option value="">All Reporter</option></select>
+    <select class="fc" id="fmod" onchange="applyFiltersAndRender()"><option value="">All Module</option></select>
+    <select class="fc" id="fasg" onchange="applyFiltersAndRender()"><option value="">All Assigned To</option></select>
     <div class="fbar-dates">
-      <input class="fc" type="date" id="fdateFrom" onchange="render()">
-      <input class="fc" type="date" id="fdateTo" onchange="render()">
+      <input class="fc" type="date" id="fdateFrom" onchange="applyFiltersAndRender()">
+      <input class="fc" type="date" id="fdateTo" onchange="applyFiltersAndRender()">
     </div>
     <div class="fbar-actions">
       <button class="btn bs" style="font-size:12px;padding:7px 12px" onclick="clearF()" title="ล้างตัวกรองทั้งหมด">✕ Clear</button>
@@ -607,6 +608,7 @@ select.assel.assel-on{border:1.5px solid #bfdbfe;background:#eff6ff;color:#1d4ed
   <div id="lrow"><span class="spin"></span> กำลังโหลด...</div>
   <div id="bgrid"></div>
   <div id="emp">📭 ไม่มี bug ที่ตรงกับ filter</div>
+  <div id="pager" class="pager"></div>
 </div>
 
 </div><!-- container -->
@@ -673,6 +675,7 @@ const IMGBB_KEY = 'b71129aa3946d4bfacd846e5540a442a';
 let bugs=[], currentProject=null, allProjMode=false;
 let masterEnvs=[], masterMods=[], masterSevs=[], masterStats=[], masterAssignees=[];
 let viewMode=localStorage.getItem('dashViewMode')||'list';
+let pageSize=parseInt(localStorage.getItem('dashPageSize'))||20, curPage=1;
 let sev='medium', tool='rect', color='#ef4444', bsz=2;
 let drawing=false, sx, sy, penPts=[];
 let hist=[], hi=-1, gotCap=false;
@@ -1687,18 +1690,27 @@ function render(){
   });
   const g=document.getElementById('bgrid');
   const e=document.getElementById('emp');
-  if(!f.length){g.innerHTML='';e.style.display='block';g.className='';return;}
+  const pager=document.getElementById('pager');
+  if(!f.length){g.innerHTML='';e.style.display='block';g.className='';if(pager)pager.innerHTML='';return;}
   e.style.display='none';
+
+  const total=f.length;
+  const totalPages=Math.max(1,Math.ceil(total/pageSize));
+  if(curPage>totalPages) curPage=totalPages;
+  if(curPage<1) curPage=1;
+  const startIdx=pageSize===Infinity?0:(curPage-1)*pageSize;
+  const pageItems=pageSize===Infinity?f:f.slice(startIdx,startIdx+pageSize);
+  renderPager(total,totalPages);
 
   if(viewMode==='list'){
     g.className='blist';
     g.innerHTML='<div class="brow bhead"><div>#</div><div>Image</div><div>Bug Name / Details</div><div>Module</div><div>Reporter</div><div>Date</div><div>Status</div><div>Assigned To</div></div>'
-      + f.map((b,i)=>{
+      + pageItems.map((b,i)=>{
         const img=b.screenshot?`<a href="${esc(b.screenshot)}" target="_blank" onclick="event.stopPropagation()" title="เปิดรูปเต็ม ↗" class="bthumb bthumb-img"><img src="${esc(b.screenshot)}" loading="lazy" onerror="this.parentElement.outerHTML='<div class=&quot;bthumb bnimg&quot;>—</div>'"></a>`:'<div class="bthumb bnimg">—</div>';
         const stOpts=masterStats.map(s=>`<option value="${s}" ${b.status===s?'selected':''}>${s.replace(/_/g,' ')}</option>`).join('');
         const asgOpts=asgOptionsHtml(b);
         return `<div class="brow" onclick="openBug('${b.id}')">
-          <div style="color:#cbd5e1;font-weight:700;font-size:13px">${i+1}</div>
+          <div style="color:#cbd5e1;font-weight:700;font-size:13px">${startIdx+i+1}</div>
           <div>${img}</div>
           <div style="overflow:hidden">
             <div style="display:flex;gap:6px;align-items:center;margin-bottom:3px"><span class="sbadge ${b.severity}">${b.severity}</span></div>
@@ -1716,7 +1728,7 @@ function render(){
   }
 
   g.className='';
-  g.innerHTML=f.map(b=>{
+  g.innerHTML=pageItems.map(b=>{
     const img=b.screenshot?`<img class="bimg" src="${esc(b.screenshot)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
     const noImg=`<div class="bnimg" style="${b.screenshot?'display:none':''}">📷</div>`;
     const note=b.description?`<div class="bnote">${esc(b.description)}</div>`:'';
@@ -1737,6 +1749,49 @@ function render(){
       </div>
     </div>`;
   }).join('');
+}
+
+function applyFiltersAndRender(){ curPage=1; render(); }
+
+function goToPage(p){ curPage=p; render(); }
+
+function setPageSize(v){
+  pageSize=v==='all'?Infinity:parseInt(v);
+  localStorage.setItem('dashPageSize',v==='all'?'999999':v);
+  curPage=1; render();
+}
+
+function renderPager(total,totalPages){
+  const pager=document.getElementById('pager');
+  if(!pager) return;
+  if(total<=0){ pager.innerHTML=''; return; }
+  const btnStyle=(on,disabled)=>`padding:6px 11px;border-radius:7px;border:1.5px solid ${on?'#1e40af':'#e2e8f0'};background:${on?'#1e40af':'#fff'};color:${on?'#fff':disabled?'#cbd5e1':'#475569'};font-size:12px;font-weight:700;cursor:${disabled?'default':'pointer'};min-width:32px`;
+  let pages=[];
+  if(totalPages<=7){ for(let i=1;i<=totalPages;i++) pages.push(i); }
+  else{
+    pages.push(1);
+    if(curPage>4) pages.push('…');
+    for(let i=Math.max(2,curPage-1);i<=Math.min(totalPages-1,curPage+1);i++) pages.push(i);
+    if(curPage<totalPages-3) pages.push('…');
+    pages.push(totalPages);
+  }
+  const pageBtns=pages.map(p=>p==='…'
+    ? `<span style="padding:0 4px;color:#94a3b8;font-size:12px">…</span>`
+    : `<button onclick="goToPage(${p})" style="${btnStyle(p===curPage,false)}">${p}</button>`
+  ).join('');
+  const from=total?( (curPage-1)*(pageSize===Infinity?total:pageSize)+1 ):0;
+  const to=Math.min(curPage*(pageSize===Infinity?total:pageSize),total);
+  pager.innerHTML=`
+    <span style="font-size:12px;color:#94a3b8">${from}–${to} / ${total} bugs</span>
+    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+      <button onclick="goToPage(${curPage-1})" ${curPage<=1?'disabled':''} style="${btnStyle(false,curPage<=1)}">‹</button>
+      ${pageBtns}
+      <button onclick="goToPage(${curPage+1})" ${curPage>=totalPages?'disabled':''} style="${btnStyle(false,curPage>=totalPages)}">›</button>
+    </div>
+    <select onchange="setPageSize(this.value)" style="border:1.5px solid #e2e8f0;border-radius:7px;padding:5px 8px;font-size:12px;color:#475569;cursor:pointer">
+      ${[10,20,25,50].map(n=>`<option value="${n}" ${pageSize===n?'selected':''}>${n} / page</option>`).join('')}
+      <option value="all" ${pageSize===Infinity?'selected':''}>All</option>
+    </select>`;
 }
 
 function syncViewToggleBtns(){
@@ -1783,7 +1838,7 @@ function renderRepFilter(){
   }
 }
 
-function clearF(){ ['fs','fsev','fst','frep','fmod','fproj','fdateFrom','fdateTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); render(); }
+function clearF(){ ['fs','fsev','fst','frep','fmod','fasg','fproj','fdateFrom','fdateTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); curPage=1; render(); }
 function updateBadge(){}
 
 // SELECT & DELETE

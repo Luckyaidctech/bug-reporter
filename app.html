@@ -1672,7 +1672,7 @@ function render(){
     g.className='blist';
     g.innerHTML='<div class="brow bhead"><div>#</div><div>Ảnh</div><div>Bug Name / Details</div><div>Module</div><div>Reporter</div><div>Date</div><div>Status</div><div>Assigned To</div></div>'
       + f.map((b,i)=>{
-        const img=b.screenshot?`<img class="bthumb" src="${esc(b.screenshot)}" loading="lazy" onerror="this.outerHTML='<div class=&quot;bthumb bnimg&quot;>📷</div>'">`:'<div class="bthumb bnimg">📷</div>';
+        const img=b.screenshot?`<a href="${esc(b.screenshot)}" target="_blank" onclick="event.stopPropagation()" title="เปิดรูปเต็ม ↗"><img class="bthumb" src="${esc(b.screenshot)}" loading="lazy" onerror="this.outerHTML='<div class=&quot;bthumb bnimg&quot;>📷</div>'"></a>`:'<div class="bthumb bnimg">📷</div>';
         const stOpts=masterStats.map(s=>`<option value="${s}" ${b.status===s?'selected':''}>${s.replace(/_/g,' ')}</option>`).join('');
         const asgList=(allProjects.find(p=>p.id===(b._projectId||currentProject?.id))?.assignees)||masterAssignees;
         const asgOpts='<option value=""'+(b.assignee?'':' selected')+'>— ยังไม่มอบหมาย —</option>'+asgList.map(a=>`<option ${b.assignee===a?'selected':''}>${esc(a)}</option>`).join('');

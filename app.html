@@ -1816,13 +1816,13 @@ async function updateAssignee(id,assignee,projectId){
 }
 
 function renderStats(){
-  const t=bugs.length,op=bugs.filter(b=>b.status==='open').length,cr=bugs.filter(b=>b.severity==='critical').length,hi=bugs.filter(b=>b.severity==='high').length,qr=bugs.filter(b=>b.status==='qr_test').length,rs=bugs.filter(b=>b.status==='resolved').length,cl=bugs.filter(b=>b.status==='closed').length;
+  const t=bugs.length,op=bugs.filter(b=>b.status==='open').length,cr=bugs.filter(b=>b.severity==='critical').length,hi=bugs.filter(b=>b.severity==='high').length,qr=bugs.filter(b=>b.status==='qa_test').length,rs=bugs.filter(b=>b.status==='resolved').length,cl=bugs.filter(b=>b.status==='closed').length;
   document.getElementById('srow').innerHTML=`
     <div class="stat-card"><div class="stat-num">${t}</div><div class="stat-lbl">Total Bugs</div></div>
     <div class="stat-card blue"><div class="stat-num">${op}</div><div class="stat-lbl">Open</div></div>
     <div class="stat-card red"><div class="stat-num">${cr}</div><div class="stat-lbl">Critical</div></div>
     <div class="stat-card orange"><div class="stat-num">${hi}</div><div class="stat-lbl">High</div></div>
-    <div class="stat-card purple"><div class="stat-num">${qr}</div><div class="stat-lbl">QR Test</div></div>
+    <div class="stat-card purple"><div class="stat-num">${qr}</div><div class="stat-lbl">QA Test</div></div>
     <div class="stat-card green"><div class="stat-num">${rs}</div><div class="stat-lbl">Resolved</div></div>
     <div class="stat-card"><div class="stat-num" style="color:#64748b">${cl}</div><div class="stat-lbl">Closed</div></div>`;
 }
